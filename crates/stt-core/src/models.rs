@@ -85,7 +85,7 @@ macro_rules! talk_typer {
     ($file:literal) => {
         concat!(
             "https://huggingface.co/krocon/talk-typer-models/resolve/",
-            "648d42f7e6c729e764d9969bcd8b19240252e8d1/",
+            "725f98c8c2c0655e18e3750cb60b5c764d1f5180/",
             $file
         )
     };

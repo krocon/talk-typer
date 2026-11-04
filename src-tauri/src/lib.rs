@@ -10,7 +10,9 @@ pub mod devices;
 pub mod engine;
 pub mod error;
 pub mod events;
+pub mod export;
 pub mod model_store;
+pub mod settings;
 
 use engine::Engine;
 use model_store::ModelStore;
@@ -24,6 +26,9 @@ pub struct AppState {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let result = tauri::Builder::default()
+        // both plugins are used from Rust only; the webview gets no plugin permissions
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_store::Builder::new().build())
         .setup(|app| {
             let models = ModelStore::new(app.path().app_data_dir()?.join("models"));
             app.manage(AppState { models, engine: Engine::default() });
@@ -37,6 +42,9 @@ pub fn run() {
             commands::stop_listening,
             commands::list_input_devices,
             commands::set_input_device,
+            commands::save_text,
+            commands::load_settings,
+            commands::save_settings,
         ])
         .run(tauri::generate_context!());
     if let Err(e) = result {

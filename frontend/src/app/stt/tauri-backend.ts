@@ -6,6 +6,7 @@ import {
   InputDevice,
   ModelId,
   ModelInfo,
+  Settings,
   SttStatus,
   TranscriptSegment,
   toSttError,
@@ -79,5 +80,17 @@ export class TauriBackend implements TranscriptionBackend {
 
   setInputDevice(id: string | null): Promise<void> {
     return call<void>('set_input_device', { deviceId: id });
+  }
+
+  async saveText(fileName: string, contents: string): Promise<boolean> {
+    return (await call<string | null>('save_text', { fileName, contents })) !== null;
+  }
+
+  loadSettings(): Promise<Settings> {
+    return call<Settings>('load_settings');
+  }
+
+  saveSettings(settings: Settings): Promise<void> {
+    return call<void>('save_settings', { settings });
   }
 }

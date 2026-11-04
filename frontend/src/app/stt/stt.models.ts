@@ -45,6 +45,13 @@ export interface TranscriptSegment {
 
 export type SttStatus = 'idle' | 'loading' | 'listening' | 'transcribing' | 'error';
 
+/** Persisted choices (desktop: tauri-plugin-store, browser: localStorage). */
+export interface Settings {
+  modelId?: ModelId | null;
+  language?: string | null;
+  deviceId?: string | null;
+}
+
 export interface InputDevice {
   id: string;
   name: string;

@@ -1,9 +1,11 @@
-import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, computed, effect, inject, signal } from '@angular/core';
+import { LANGUAGES } from '../texts';
 import { TRANSCRIPTION_BACKEND } from './stt-backend';
 import {
   InputDevice,
   ModelId,
   ModelInfo,
+  Settings,
   SttError,
   SttStatus,
   TranscriptSegment,
@@ -22,7 +24,7 @@ export class SttStore {
   readonly status = signal<SttStatus>('idle');
   readonly models = signal<ModelInfo[]>([]);
   /** Desktop: best quality, fast enough with Metal/GPU; browser: smallest (CPU/WASM). */
-  readonly modelId = signal<ModelId>(this.platform === 'desktop' ? 'large-v3-turbo' : 'tiny-q');
+  readonly modelId = signal<ModelId>(this.platform === 'desktop' ? 'large-v3-turbo-q' : 'tiny-q');
   readonly language = signal<string>('de');
   readonly devices = signal<InputDevice[]>([]);
   readonly deviceId = signal<string | null>(null);
@@ -42,6 +44,9 @@ export class SttStore {
   /** Waiting for the microphone (the first start may wait for the system permission dialog). */
   readonly openingMic = signal(false);
 
+  /** Settings are saved only after they were loaded (no overwrite with defaults). */
+  private readonly settingsLoaded = signal(false);
+
   readonly listening = computed(() => this.startedAt() !== null);
   readonly model = computed(() => this.models().find((m) => m.id === this.modelId()));
   readonly text = computed(() =>
@@ -59,14 +64,56 @@ export class SttStore {
       this.backend.errors$.subscribe((e) => this.fail(e)),
     ];
     inject(DestroyRef).onDestroy(() => subs.forEach((s) => s.unsubscribe()));
+    effect(() => {
+      const settings = {
+        modelId: this.modelId(),
+        language: this.language(),
+        deviceId: this.deviceId(),
+      };
+      if (this.settingsLoaded()) void this.backend.saveSettings(settings).catch(() => undefined);
+    });
   }
 
   async init(): Promise<void> {
     try {
       await this.refreshModels();
-      if (this.platform === 'desktop') this.devices.set(await this.backend.listInputDevices());
+      await this.refreshDevices();
+      await this.applySettings();
     } catch (e) {
       this.fail(e);
+    } finally {
+      this.settingsLoaded.set(true);
+    }
+  }
+
+  /** Desktop: re-reads the input devices (plugged in / removed). */
+  async refreshDevices(): Promise<void> {
+    if (this.platform !== 'desktop') return;
+    try {
+      this.devices.set(await this.backend.listInputDevices());
+    } catch (e) {
+      this.fail(e);
+    }
+  }
+
+  /** Applies saved choices that are still valid (model offered, language known, device present). */
+  private async applySettings(): Promise<void> {
+    const s = await this.backend.loadSettings().catch(() => ({}) as Settings);
+    if (s.modelId && this.models().some((m) => m.id === s.modelId)) this.modelId.set(s.modelId);
+    if (s.language && LANGUAGES.some((l) => l.code === s.language)) this.language.set(s.language);
+    if (s.deviceId && this.devices().some((d) => d.id === s.deviceId)) {
+      await this.selectDevice(s.deviceId);
+    }
+  }
+
+  /** Saves the transcript as .txt or .srt; `false` when cancelled or nothing to save. */
+  async export(contents: string, fileName: string): Promise<boolean> {
+    if (!contents) return false;
+    try {
+      return await this.backend.saveText(fileName, contents);
+    } catch (e) {
+      this.fail(e);
+      return false;
     }
   }
 

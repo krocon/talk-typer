@@ -11,6 +11,7 @@ import {
   signal,
   viewChildren,
 } from '@angular/core';
+import { exportFileName, toSrt, toTxt } from './export/transcript-export';
 import { formatClock, formatDuration } from './recorder/clock';
 import { Waveform } from './recorder/waveform';
 import { ModelId } from './stt/stt.models';
@@ -36,6 +37,8 @@ export class App implements OnInit {
   /** Wide window: transcript on a sheet to the right; otherwise inside the display. */
   protected readonly wide = signal(false);
   protected readonly copied = signal(false);
+  /** Format that was just saved (button feedback). */
+  protected readonly saved = signal<'txt' | 'srt' | null>(null);
   private readonly now = signal(Date.now());
 
   protected readonly clock = computed(() => formatClock(new Date(this.now())));
@@ -98,6 +101,21 @@ export class App implements OnInit {
   protected onDevice(ev: Event): void {
     const v = (ev.target as HTMLSelectElement).value;
     void this.store.selectDevice(v === '' ? null : v);
+  }
+
+  protected toggleSettings(): void {
+    const open = !this.settingsOpen();
+    this.settingsOpen.set(open);
+    if (open) void this.store.refreshDevices();
+  }
+
+  protected async save(format: 'txt' | 'srt'): Promise<void> {
+    const segments = this.store.segments();
+    const contents = format === 'txt' ? toTxt(segments) : toSrt(segments);
+    if (await this.store.export(contents, exportFileName(format))) {
+      this.saved.set(format);
+      setTimeout(() => this.saved.set(null), 1500);
+    }
   }
 
   protected record(): void {

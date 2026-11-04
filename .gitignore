@@ -68,3 +68,4 @@ Thumbs.db
 /frontend/public/wasm/
 /out-tsc
 /models/
+/upload/

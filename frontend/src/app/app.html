@@ -38,6 +38,27 @@
               }
             </select>
           </label>
+          <div class="menu-row">
+            <span>{{ t.export }}</span>
+            <div class="menu-actions">
+              <button
+                type="button"
+                [disabled]="!store.text()"
+                [attr.aria-label]="t.saveTxt"
+                (click)="save('txt')"
+              >
+                {{ saved() === 'txt' ? t.saved : '.txt' }}
+              </button>
+              <button
+                type="button"
+                [disabled]="!store.text()"
+                [attr.aria-label]="t.saveSrt"
+                (click)="save('srt')"
+              >
+                {{ saved() === 'srt' ? t.saved : '.srt' }}
+              </button>
+            </div>
+          </div>
           @if (store.platform === 'desktop') {
             <label>
               <span>{{ t.device }}</span>
@@ -124,7 +145,7 @@
           class="key"
           [attr.aria-label]="settingsOpen() ? t.closeSettings : t.settings"
           [attr.aria-expanded]="settingsOpen()"
-          (click)="settingsOpen.set(!settingsOpen())"
+          (click)="toggleSettings()"
         >
           <span class="cap">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -166,6 +187,24 @@
           </p>
         </div>
         <div class="actions">
+          <button
+            type="button"
+            class="btn"
+            [disabled]="!store.text()"
+            [attr.aria-label]="t.saveTxt"
+            (click)="save('txt')"
+          >
+            {{ saved() === 'txt' ? t.saved : '.txt' }}
+          </button>
+          <button
+            type="button"
+            class="btn"
+            [disabled]="!store.text()"
+            [attr.aria-label]="t.saveSrt"
+            (click)="save('srt')"
+          >
+            {{ saved() === 'srt' ? t.saved : '.srt' }}
+          </button>
           <button type="button" class="btn" [disabled]="!store.text()" (click)="copy()">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <rect x="8" y="8" width="12" height="12" rx="2" />

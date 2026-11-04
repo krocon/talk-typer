@@ -13,11 +13,11 @@ URL, eine SHA-256-Prüfsumme und eine Größe. Ein Download, dessen Prüfsumme n
 | `small` | F32 safetensors | `openai/whisper-small` (Commit gepinnt) | 969 MB |
 | `small-q` | Q8_0 GGUF | `krocon/talk-typer-models` (selbst quantisiert, Commit gepinnt) | 266 MB |
 | `large-v3-turbo` | F32 safetensors | `openai/whisper-large-v3-turbo` (Commit gepinnt) | 1621 MB |
-| `large-v3-turbo-q` | Q8_0 GGUF | `krocon/talk-typer-models` (selbst quantisiert, **noch hochzuladen**) | 880 MB |
+| `large-v3-turbo-q` | Q8_0 GGUF | `krocon/talk-typer-models` (selbst quantisiert, Commit gepinnt) | 880 MB |
 
 `config.json` und `tokenizer.json` kommen bei allen Varianten aus dem jeweiligen OpenAI-Repository.
 
-Standard: Desktop `large-v3-turbo` (beste Erkennung, mit Metal/GPU schneller als `small`), Browser
+Standard: Desktop `large-v3-turbo-q` (beste Erkennung, mit Metal/GPU schneller als `small`), Browser
 `tiny-q` (kleinster Download; im Browser rechnet nur die CPU). `large-v3-turbo` nutzt 128 Mel-Bänder
 statt 80 und wird im Browser nicht angeboten (dort zu langsam).
 
@@ -43,7 +43,8 @@ hf repos create krocon/talk-typer-models --public
 hf upload krocon/talk-typer-models upload/ .
 ```
 
-Hochgeladen am 04.11.2026, Commit `648d42f7e6c729e764d9969bcd8b19240252e8d1`; auf diesen Commit zeigen die
+Hochgeladen am 04.11.2026: tiny/base/small in Commit `648d42f`, large-v3-turbo in Commit
+`725f98c8c2c0655e18e3750cb60b5c764d1f5180`; auf diesen Commit (er enthält alle vier Dateien) zeigen die
 URLs im Katalog. Neue Dateien → neuer Commit → URLs und Prüfsummen im Katalog anpassen.
 
 Ist das Repository nicht erreichbar, erzeugt das Entwicklerwerkzeug (`--fetch` bei

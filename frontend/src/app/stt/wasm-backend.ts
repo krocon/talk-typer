@@ -6,11 +6,14 @@ import {
   InputDevice,
   ModelId,
   ModelInfo,
+  Settings,
   SttError,
   SttStatus,
   TranscriptSegment,
   toSttError,
 } from './stt.models';
+
+const SETTINGS_KEY = 'talk-typer.settings.v1';
 
 type Request = Extract<WorkerRequest, { id: number }>;
 type RequestWithoutId = Request extends infer R
@@ -165,6 +168,35 @@ export class WasmBackend implements TranscriptionBackend {
 
   async setInputDevice(): Promise<void> {
     // The browser chooses the device itself (getUserMedia permission prompt).
+  }
+
+  /** Browser download (the browser decides where the file goes). */
+  async saveText(fileName: string, contents: string): Promise<boolean> {
+    const url = URL.createObjectURL(new Blob([contents], { type: 'text/plain;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    return true;
+  }
+
+  async loadSettings(): Promise<Settings> {
+    try {
+      const raw = localStorage.getItem(SETTINGS_KEY);
+      const value: unknown = raw ? JSON.parse(raw) : {};
+      return typeof value === 'object' && value !== null ? (value as Settings) : {};
+    } catch {
+      return {};
+    }
+  }
+
+  async saveSettings(settings: Settings): Promise<void> {
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    } catch {
+      // private mode / storage disabled: settings are just not remembered
+    }
   }
 
   private request(msg: RequestWithoutId): Promise<void> {

@@ -4,6 +4,7 @@ use crate::AppState;
 use crate::devices::{self, InputDevice};
 use crate::error::{AppError, AppResult};
 use crate::events::{self, DownloadProgress, SttStatus};
+use crate::settings::{self, Settings};
 use serde::Serialize;
 use stt_core::{MODELS, ModelId, ModelInfo};
 use tauri::{AppHandle, Emitter, Manager, State};
@@ -97,6 +98,25 @@ pub async fn set_input_device(
     device_id: Option<String>,
 ) -> AppResult<()> {
     state.engine.set_device(device_id)
+}
+
+#[tauri::command]
+pub async fn save_text(
+    app: AppHandle,
+    file_name: String,
+    contents: String,
+) -> AppResult<Option<String>> {
+    blocking(move || crate::export::save_text(&app, &file_name, &contents)).await
+}
+
+#[tauri::command]
+pub async fn load_settings(app: AppHandle) -> AppResult<Settings> {
+    blocking(move || settings::load(&app)).await
+}
+
+#[tauri::command]
+pub async fn save_settings(app: AppHandle, settings: Settings) -> AppResult<()> {
+    blocking(move || settings::save(&app, settings)).await
 }
 
 #[cfg(test)]

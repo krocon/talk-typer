@@ -4,6 +4,7 @@ import {
   InputDevice,
   ModelId,
   ModelInfo,
+  Settings,
   SttError,
   SttStatus,
   TranscriptSegment,
@@ -23,6 +24,10 @@ export interface TranscriptionBackend {
   /** Input devices (desktop only; the browser picks via getUserMedia). */
   listInputDevices(): Promise<InputDevice[]>;
   setInputDevice(id: string | null): Promise<void>;
+  /** Saves text under a name the user confirms; `false` = cancelled. */
+  saveText(fileName: string, contents: string): Promise<boolean>;
+  loadSettings(): Promise<Settings>;
+  saveSettings(settings: Settings): Promise<void>;
   readonly segments$: Observable<TranscriptSegment>;
   readonly status$: Observable<SttStatus>;
   /** Input level (RMS, 0…1) for the level meter and the waveform. */

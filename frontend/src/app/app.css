@@ -157,6 +157,41 @@
   font: 14px var(--font);
 }
 
+.menu-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--screen-dim);
+}
+
+.menu-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.menu-actions button {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid var(--screen-faint);
+  border-radius: 6px;
+  background: #141416;
+  color: var(--screen-fg);
+  font: 14px var(--font);
+  cursor: pointer;
+}
+
+.menu-actions button:hover:not(:disabled) {
+  border-color: var(--screen-dim);
+}
+
+.menu-actions button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 .progress {
   height: 3px;
   margin: 8px 0 4px;
