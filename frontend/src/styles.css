@@ -1,33 +1,63 @@
-/* Design tokens – the only place for colours and sizes. Light/dark follow the system. */
+/*
+ * Design tokens – the only place for colours and sizes. Layout after ideen/img_1.png: a light
+ * recorder body with a black display and soft keys. Dark mode: graphite body, the display stays
+ * black (it is "emissive").
+ */
 :root {
   color-scheme: light dark;
-  --accent: #c8453f;
-  --accent-strong: #b03a35;
-  --accent-contrast: #ffffff;
-  --bg: #f4f4f6;
-  --surface: #ffffff;
-  --surface-2: #ececf0;
-  --border: #d9d9df;
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Helvetica Neue', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --page: #e9e9eb;
+  --page-shade: #d9d9dc;
+  --body: #f6f6f7;
+  --body-edge: #ffffff;
+  --body-shadow: 0 30px 60px rgb(0 0 0 / 18%), 0 6px 14px rgb(0 0 0 / 10%);
+  --key-face: #e6e6e8;
+  --key-line: #1e1e20;
+  --key-dome: radial-gradient(circle at 50% 35%, #f3f3f4 0%, #e1e1e3 60%, #d2d2d5 100%);
+  --key-dome-shadow: 0 6px 12px rgb(0 0 0 / 14%), inset 0 1px 0 rgb(255 255 255 / 90%);
+  --key-icon: #6f6f73;
+  --grille-dot: #2a2a2c;
+
+  --screen: #0b0b0c;
+  --screen-scan: rgb(255 255 255 / 2.5%);
+  --screen-fg: #f2f2f2;
+  --screen-dim: #8a8a8f;
+  --screen-faint: #3a3a3e;
+  --rec: #e5413a;
+  --rec-soft: #c9615c;
+
+  --paper: #ffffff;
+  --paper-line: #e3e3e6;
   --text: #1c1d21;
-  --text-muted: #62646d;
-  --text-preliminary: #8a8c95;
+  --text-muted: #6a6c74;
+  --text-preliminary: #9a9ca4;
   --danger: #b3261e;
   --focus: #2f6fde;
-  --radius: 14px;
+
+  --radius-body: 28px;
+  --radius-screen: 18px;
+  --radius-key: 12px;
   --radius-sm: 8px;
-  --gap: 16px;
-  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --accent: #d2504a;
-    --accent-strong: #e0645e;
-    --bg: #1c1d21;
-    --surface: #26272c;
-    --surface-2: #303137;
-    --border: #3a3b42;
-    --text: #f1f1f3;
+    --page: #141416;
+    --page-shade: #0c0c0d;
+    --body: #2b2c30;
+    --body-edge: #3a3b40;
+    --body-shadow: 0 30px 60px rgb(0 0 0 / 55%), 0 6px 14px rgb(0 0 0 / 40%);
+    --key-face: #323338;
+    --key-line: #0c0c0d;
+    --key-dome: radial-gradient(circle at 50% 35%, #4a4b51 0%, #3a3b40 60%, #2e2f33 100%);
+    --key-dome-shadow: 0 6px 12px rgb(0 0 0 / 45%), inset 0 1px 0 rgb(255 255 255 / 12%);
+    --key-icon: #b9bbc2;
+    --grille-dot: #0d0d0e;
+    --paper: #212226;
+    --paper-line: #33343a;
+    --text: #eeeef1;
     --text-muted: #a3a5ad;
     --text-preliminary: #7d7f88;
     --danger: #ff8a80;
@@ -44,8 +74,9 @@
 html,
 body {
   margin: 0;
-  height: 100%;
-  background: var(--bg);
+  min-height: 100%;
+  background: radial-gradient(120% 90% at 50% 0%, var(--page) 40%, var(--page-shade) 100%);
+  background-attachment: fixed;
   color: var(--text);
   font-family: var(--font);
   font-size: 15px;
@@ -53,45 +84,24 @@ body {
 
 :focus-visible {
   outline: 2px solid var(--focus);
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
 .btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  border: 1px solid var(--border);
+  padding: 7px 14px;
+  border: 1px solid var(--paper-line);
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: var(--paper);
   color: var(--text);
   font: inherit;
   cursor: pointer;
 }
 
 .btn:hover:not(:disabled) {
-  background: var(--surface-2);
+  border-color: var(--text-muted);
 }
 
 .btn:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: default;
-}
-
-.select {
-  padding: 7px 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-}
-
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
 }

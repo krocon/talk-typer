@@ -6,6 +6,7 @@ import {
   InputDevice,
   ModelId,
   ModelInfo,
+  SttError,
   SttStatus,
   TranscriptSegment,
   toSttError,
@@ -63,6 +64,10 @@ export class WasmBackend implements TranscriptionBackend {
   readonly level$: Observable<number> = this.messages.pipe(
     filter((m) => m.type === 'level'),
     map((m) => m.level),
+  );
+  readonly errors$: Observable<SttError> = this.messages.pipe(
+    filter((m) => m.type === 'error'),
+    map((m) => m.error),
   );
 
   constructor() {

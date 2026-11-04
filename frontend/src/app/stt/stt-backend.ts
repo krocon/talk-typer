@@ -1,6 +1,13 @@
 import { InjectionToken } from '@angular/core';
 import { Observable } from 'rxjs';
-import { InputDevice, ModelId, ModelInfo, SttStatus, TranscriptSegment } from './stt.models';
+import {
+  InputDevice,
+  ModelId,
+  ModelInfo,
+  SttError,
+  SttStatus,
+  TranscriptSegment,
+} from './stt.models';
 
 /**
  * One speech-to-text engine. Desktop: native Whisper in Rust (`TauriBackend`);
@@ -18,8 +25,10 @@ export interface TranscriptionBackend {
   setInputDevice(id: string | null): Promise<void>;
   readonly segments$: Observable<TranscriptSegment>;
   readonly status$: Observable<SttStatus>;
-  /** Input level 0…1 for the level meter. */
+  /** Input level (RMS, 0…1) for the level meter and the waveform. */
   readonly level$: Observable<number>;
+  /** Errors that happen while listening (device lost, microphone blocked …). */
+  readonly errors$: Observable<SttError>;
 }
 
 /** Bound in `main.ts` after the platform's backend module was loaded lazily. */

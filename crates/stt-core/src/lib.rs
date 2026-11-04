@@ -13,6 +13,7 @@ pub mod chunker;
 pub mod error;
 pub mod mel;
 pub mod models;
+pub mod pipeline;
 pub mod segment;
 pub mod tokenizer;
 pub mod vad;

@@ -19,6 +19,10 @@ export interface ModelInfo {
   sizeMb: number;
   melBins: number;
   files: ModelFile[];
+  /** Desktop: all files are in the local cache. */
+  downloaded?: boolean;
+  /** Desktop: currently loaded in memory. */
+  loaded?: boolean;
 }
 
 export interface TranscriptSegment {
@@ -51,6 +55,11 @@ export type SttErrorCode =
   | 'no_input_device'
   | 'insecure_context'
   | 'unsupported_browser'
+  | 'download_failed'
+  | 'checksum_mismatch'
+  | 'model_missing'
+  | 'io'
+  | 'already_listening'
   | 'internal'
   | 'not_implemented';
 

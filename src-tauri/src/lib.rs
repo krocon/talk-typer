@@ -4,23 +4,31 @@
 //! The frontend talks to this crate only through the commands in [`commands`] and the events in
 //! [`events`]. The only network access is the model download from HuggingFace.
 
+pub mod capture;
 pub mod commands;
 pub mod devices;
+pub mod engine;
 pub mod error;
 pub mod events;
+pub mod model_store;
 
-use std::sync::Mutex;
+use engine::Engine;
+use model_store::ModelStore;
+use tauri::Manager;
 
-#[derive(Default)]
 pub struct AppState {
-    /// Selected cpal input device id; `None` = system default.
-    pub input_device: Mutex<Option<String>>,
+    pub models: ModelStore,
+    pub engine: Engine,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let result = tauri::Builder::default()
-        .manage(AppState::default())
+        .setup(|app| {
+            let models = ModelStore::new(app.path().app_data_dir()?.join("models"));
+            app.manage(AppState { models, engine: Engine::default() });
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             commands::list_models,
             commands::download_model,

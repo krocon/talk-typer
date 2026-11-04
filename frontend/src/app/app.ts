@@ -1,12 +1,28 @@
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
-import { SttStore } from './stt/stt.store';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  ElementRef,
+  OnInit,
+  computed,
+  effect,
+  inject,
+  signal,
+  viewChildren,
+} from '@angular/core';
+import { formatClock, formatDuration } from './recorder/clock';
+import { Waveform } from './recorder/waveform';
 import { ModelId } from './stt/stt.models';
+import { SttStore } from './stt/stt.store';
 import { LANGUAGES, TEXTS } from './texts';
+
+/** Same breakpoint as `.stage` in app.css. */
+const WIDE_QUERY = '(min-width: 900px)';
 
 @Component({
   selector: 'app-root',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, Waveform],
   templateUrl: './app.html',
   styleUrl: './app.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -16,14 +32,59 @@ export class App implements OnInit {
   protected readonly t = TEXTS;
   protected readonly languages = LANGUAGES;
 
+  protected readonly settingsOpen = signal(false);
+  /** Wide window: transcript on a sheet to the right; otherwise inside the display. */
+  protected readonly wide = signal(false);
+  protected readonly copied = signal(false);
+  private readonly now = signal(Date.now());
+
+  protected readonly clock = computed(() => formatClock(new Date(this.now())));
+  protected readonly timer = computed(() => {
+    const started = this.store.startedAt();
+    return formatDuration(started === null ? this.store.lastDuration() : this.now() - started);
+  });
   protected readonly errorText = computed(() => {
     const e = this.store.error();
     return e ? this.t.errors[e.code] : '';
   });
-  protected readonly levelScale = computed(() => 1 + Math.min(this.store.level() * 4, 0.35));
+  protected readonly languageCode = computed(() => this.store.language().toUpperCase());
+  protected readonly wordCount = computed(() => {
+    const text = this.store.text();
+    return text ? text.split(/\s+/).filter(Boolean).length : 0;
+  });
+  protected readonly formatStamp = (ms: number): string => formatDuration(ms).slice(3);
+
+  private readonly scrollers = viewChildren<ElementRef<HTMLElement>>('scroller');
+
+  constructor() {
+    // keep the newest text in view
+    effect(() => {
+      this.store.segments();
+      this.store.preliminary();
+      const els = this.scrollers();
+      queueMicrotask(() =>
+        els.forEach((e) => (e.nativeElement.scrollTop = e.nativeElement.scrollHeight)),
+      );
+    });
+    const timer = setInterval(() => this.now.set(Date.now()), 250);
+    const query = globalThis.matchMedia?.(WIDE_QUERY);
+    const onChange = (): void => this.wide.set(query?.matches ?? false);
+    onChange();
+    query?.addEventListener('change', onChange);
+    inject(DestroyRef).onDestroy(() => {
+      clearInterval(timer);
+      query?.removeEventListener('change', onChange);
+    });
+  }
 
   ngOnInit(): void {
     void this.store.init();
+  }
+
+  /** Desktop: "Base ✓" when cached, else "Base · ↓ 293 MB"; browser: "Base · 293 MB". */
+  protected modelOptionLabel(m: { label: string; sizeMb: number; downloaded?: boolean }): string {
+    if (m.downloaded === undefined) return `${m.label} · ${m.sizeMb} MB`;
+    return m.downloaded ? `${m.label} ✓` : `${m.label} · ↓ ${m.sizeMb} MB`;
   }
 
   protected onModel(ev: Event): void {
@@ -39,7 +100,14 @@ export class App implements OnInit {
     void this.store.selectDevice(v === '' ? null : v);
   }
 
+  protected record(): void {
+    this.settingsOpen.set(false);
+    void this.store.start();
+  }
+
   protected async copy(): Promise<void> {
     await navigator.clipboard.writeText(this.store.text());
+    this.copied.set(true);
+    setTimeout(() => this.copied.set(false), 1500);
   }
 }

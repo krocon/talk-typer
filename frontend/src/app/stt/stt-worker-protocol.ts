@@ -14,4 +14,5 @@ export type WorkerResponse =
   | { type: 'progress'; modelId: ModelId; received: number; total: number }
   | { type: 'segment'; segment: TranscriptSegment }
   | { type: 'status'; status: SttStatus }
-  | { type: 'level'; level: number };
+  | { type: 'level'; level: number }
+  | { type: 'error'; error: SttError };

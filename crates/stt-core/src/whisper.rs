@@ -317,6 +317,11 @@ impl Transcriber {
             if next == self.tokens.eot || tokens.len() > self.config.max_target_positions {
                 break;
             }
+            if let Some(keep) = repetition_cut(&tokens[sample_begin..]) {
+                // Greedy decoding got stuck in a loop: keep one repetition, end the window.
+                tokens.truncate(sample_begin + keep);
+                break;
+            }
             sum_logprob += log_softmax_at(&logits, next as usize);
         }
         let sampled = tokens.split_off(sample_begin);
@@ -368,6 +373,27 @@ impl Transcriber {
     }
 }
 
+/// Repetition guard (stands in for OpenAI's temperature fallback, which needs sampling): if the
+/// sampled tokens end with the same n-gram (n ≤ 16) four times in a row, returns the length to
+/// keep – everything up to and including the first of these repetitions.
+fn repetition_cut(sampled: &[u32]) -> Option<usize> {
+    const REPEATS: usize = 4;
+    for n in 1..=16 {
+        if sampled.len() < n * REPEATS {
+            break;
+        }
+        let tail = &sampled[sampled.len() - n..];
+        let all_same = (1..REPEATS).all(|r| {
+            let start = sampled.len() - n * (r + 1);
+            &sampled[start..start + n] == tail
+        });
+        if all_same {
+            return Some(sampled.len() - n * (REPEATS - 1));
+        }
+    }
+    None
+}
+
 fn log_sum_exp(v: &[f32]) -> f32 {
     let max = v.iter().copied().fold(f32::NEG_INFINITY, f32::max);
     if max == f32::NEG_INFINITY {
@@ -394,6 +420,15 @@ mod tests {
         assert!((softmax_at(&v, 0) - 0.5).abs() < 1e-6);
         assert!((log_sum_exp(&[f32::NEG_INFINITY, 0.0])).abs() < 1e-6);
         assert_eq!(log_sum_exp(&[f32::NEG_INFINITY]), f32::NEG_INFINITY);
+    }
+
+    #[test]
+    fn repetition_guard_keeps_one_repetition() {
+        assert_eq!(repetition_cut(&[1, 2, 3]), None);
+        assert_eq!(repetition_cut(&[9, 5, 5, 5, 5]), Some(2));
+        assert_eq!(repetition_cut(&[9, 1, 2, 1, 2, 1, 2, 1, 2]), Some(3));
+        // three repeats are still allowed (counting, lists)
+        assert_eq!(repetition_cut(&[1, 2, 1, 2, 1, 2]), None);
     }
 
     #[test]

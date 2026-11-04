@@ -15,6 +15,16 @@ pub enum AppError {
     MicrophoneDenied,
     #[error("no input device")]
     NoInputDevice,
+    #[error("download failed: {0}")]
+    Download(String),
+    #[error("checksum mismatch: {0}")]
+    ChecksumMismatch(String),
+    #[error("model not downloaded: {0}")]
+    ModelMissing(String),
+    #[error("file system: {0}")]
+    Io(String),
+    #[error("already listening")]
+    AlreadyListening,
     #[error("internal: {0}")]
     Internal(String),
     #[error("not implemented yet: {0}")]
@@ -28,6 +38,11 @@ impl AppError {
             Self::AudioDevice(_) => "audio_device",
             Self::MicrophoneDenied => "microphone_denied",
             Self::NoInputDevice => "no_input_device",
+            Self::Download(_) => "download_failed",
+            Self::ChecksumMismatch(_) => "checksum_mismatch",
+            Self::ModelMissing(_) => "model_missing",
+            Self::Io(_) => "io",
+            Self::AlreadyListening => "already_listening",
             Self::Internal(_) => "internal",
             Self::NotImplemented(_) => "not_implemented",
         }
@@ -41,6 +56,12 @@ impl Serialize for AppError {
         st.serialize_field("code", self.code())?;
         st.serialize_field("message", &self.to_string())?;
         st.end()
+    }
+}
+
+impl From<std::io::Error> for AppError {
+    fn from(e: std::io::Error) -> Self {
+        Self::Io(e.to_string())
     }
 }
 
