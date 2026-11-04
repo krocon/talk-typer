@@ -1,0 +1,4 @@
+# Browser build of stt-core / stt-wasm: SIMD on, and getrandom (pulled in by candle via rand)
+# uses the JS crypto API. Native builds are unaffected.
+[target.wasm32-unknown-unknown]
+rustflags = ["-C", "target-feature=+simd128", "--cfg", "getrandom_backend=\"wasm_js\""]

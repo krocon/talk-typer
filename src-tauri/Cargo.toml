@@ -1,0 +1,37 @@
+[package]
+name = "talk-typer"
+description = "Talk Typer – local speech-to-text with Whisper (Tauri 2 + Angular)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[lib]
+# Distinct lib name avoids the bin/lib name clash on Windows (cargo issue #8519).
+name = "talk_typer_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.7.4", features = [] }
+
+[dependencies]
+tauri = { version = "2.12.5", features = [] }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+stt-core.workspace = true
+# Native microphone capture (not getUserMedia in the WebView: unreliable in WebKitGTK/WKWebView).
+cpal = "0.18.2"
+
+# GPU on macOS via Metal, BLAS via Accelerate.
+[target.'cfg(target_os = "macos")'.dependencies]
+stt-core = { workspace = true, features = ["metal", "accelerate"] }
+
+[features]
+# Optional NVIDIA GPU on Windows/Linux: `cargo build --features cuda` (needs the CUDA toolkit).
+cuda = ["stt-core/cuda"]
+
+[lints]
+workspace = true

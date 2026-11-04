@@ -1,0 +1,49 @@
+[workspace]
+resolver = "3"
+members = ["crates/stt-core", "crates/stt-wasm", "src-tauri"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.93"
+license = "MIT"
+authors = ["krocon"]
+repository = "https://github.com/krocon/talk-typer"
+
+[workspace.dependencies]
+stt-core = { path = "crates/stt-core" }
+candle-core = { version = "0.11.1", default-features = false }
+candle-nn = { version = "0.11.1", default-features = false }
+candle-transformers = { version = "0.11.1", default-features = false }
+rubato = "5.0.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+
+# Whisper in an unoptimised build is unusably slow (`tauri dev`, examples, tests):
+# the numeric crates are always optimised, our own code stays debuggable.
+[profile.dev.package.candle-core]
+opt-level = 3
+[profile.dev.package.candle-nn]
+opt-level = 3
+[profile.dev.package.candle-transformers]
+opt-level = 3
+[profile.dev.package.gemm]
+opt-level = 3
+[profile.dev.package.rubato]
+opt-level = 3
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
+panic = "abort"
+strip = true

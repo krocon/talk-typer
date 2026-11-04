@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- macOS grid: body 824 px, radius 185.4 -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2e2f35"/>
+      <stop offset="1" stop-color="#1c1d21"/>
+    </linearGradient>
+  </defs>
+  <rect x="100" y="100" width="824" height="824" rx="185.4" fill="url(#bg)"/>
+  <!-- microphone -->
+  <rect x="402" y="220" width="160" height="300" rx="80" fill="#d2504a"/>
+  <path d="M342 450 a140 140 0 0 0 280 0" fill="none" stroke="#d2504a" stroke-width="36" stroke-linecap="round"/>
+  <line x1="482" y1="590" x2="482" y2="650" stroke="#d2504a" stroke-width="36" stroke-linecap="round"/>
+  <!-- typed text lines -->
+  <rect x="262" y="700" width="500" height="36" rx="18" fill="#f1f1f3"/>
+  <rect x="262" y="770" width="340" height="36" rx="18" fill="#a3a5ad"/>
+  <!-- cursor -->
+  <rect x="626" y="760" width="16" height="56" rx="6" fill="#d2504a"/>
+</svg>

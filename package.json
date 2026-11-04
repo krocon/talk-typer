@@ -1,0 +1,62 @@
+{
+  "name": "talk-typer",
+  "version": "0.1.0",
+  "description": "Local speech-to-text with Whisper – Tauri 2 desktop app and browser (WASM)",
+  "license": "MIT",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": "^22.22.0 || ^24.15.0 || >=26.0.0"
+  },
+  "scripts": {
+    "ng": "ng",
+    "worklets": "node scripts/build-worklets.mjs",
+    "start": "pnpm worklets && ng serve",
+    "start:desktop": "ng serve --configuration desktop-dev",
+    "start:web": "pnpm worklets && ng serve --configuration web-dev",
+    "build:desktop": "ng build --configuration desktop",
+    "build:web": "pnpm worklets && ng build --configuration web",
+    "build": "pnpm build:desktop && pnpm build:web",
+    "wasm": "wasm-pack build crates/stt-wasm --target web --out-dir ../../frontend/src/wasm/stt-wasm --release",
+    "lint": "ng lint && tsc -p frontend/tsconfig.worklet.json",
+    "format": "prettier --write \"frontend/src/**/*.{ts,html,css}\" \"*.{json,md}\"",
+    "format:check": "prettier --check \"frontend/src/**/*.{ts,html,css}\"",
+    "test": "ng test --watch=false",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build:mac": "tauri build --target universal-apple-darwin --bundles app,dmg",
+    "tauri:build:linux": "tauri build --bundles deb,rpm,appimage",
+    "tauri:build:windows": "tauri build --bundles msi,nsis",
+    "rust:fmt": "cargo fmt --all --check",
+    "rust:lint": "cargo clippy --workspace --all-targets -- -D warnings",
+    "rust:lint:wasm": "cargo clippy -p stt-core -p stt-wasm --target wasm32-unknown-unknown -- -D warnings",
+    "rust:test": "cargo test --workspace",
+    "check": "pnpm format:check && pnpm lint && pnpm test && pnpm build && pnpm rust:fmt && pnpm rust:lint && pnpm rust:lint:wasm && pnpm rust:test"
+  },
+  "dependencies": {
+    "@angular/common": "^22.2.0",
+    "@angular/compiler": "^22.2.0",
+    "@angular/core": "^22.2.0",
+    "@angular/forms": "^22.2.0",
+    "@angular/platform-browser": "^22.2.0",
+    "@tauri-apps/api": "2.12.4",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular-eslint/builder": "22.6.0",
+    "@angular/build": "^22.2.5",
+    "@angular/cli": "^22.2.5",
+    "@angular/compiler-cli": "^22.2.0",
+    "@eslint/js": "^10.0.1",
+    "@tauri-apps/cli": "2.12.4",
+    "angular-eslint": "22.6.0",
+    "esbuild": "0.28.2",
+    "eslint": "^10.14.0",
+    "jsdom": "^30.0.0",
+    "prettier": "^3.8.1",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "8.72.1",
+    "vitest": "^5.0.0"
+  }
+}

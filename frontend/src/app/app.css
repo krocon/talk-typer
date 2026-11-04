@@ -1,0 +1,150 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.top h1 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 20px 16px;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.record {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0;
+}
+
+.rec {
+  --level: 1;
+  width: 96px;
+  height: 96px;
+  border: 4px solid var(--accent);
+  border-radius: 50%;
+  background: var(--surface);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 0 calc((var(--level) - 1) * 60px)
+    color-mix(in srgb, var(--accent) 25%, transparent);
+  transition: box-shadow 80ms linear;
+}
+
+.rec-dot {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent);
+  transition:
+    border-radius 150ms,
+    width 150ms,
+    height 150ms;
+}
+
+.rec.active .rec-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+}
+
+.rec:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.status {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.error {
+  margin: 0;
+  max-width: 560px;
+  color: var(--danger);
+  text-align: center;
+}
+
+.transcript {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 200px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.text {
+  flex: 1;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-y: auto;
+}
+
+.preliminary {
+  color: var(--text-preliminary);
+  font-style: italic;
+}
+
+.placeholder {
+  color: var(--text-muted);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.foot {
+  padding: 10px 20px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-align: center;
+}

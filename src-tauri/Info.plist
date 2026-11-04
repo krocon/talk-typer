@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Merged by the Tauri bundler into the app's Info.plist (macOS). -->
+<plist version="1.0">
+<dict>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>Talk Typer wandelt deine Sprache lokal auf diesem Mac in Text um. Audio verlässt das Gerät nie.</string>
+</dict>
+</plist>

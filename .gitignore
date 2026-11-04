@@ -61,3 +61,10 @@ Thumbs.db
 # Morse test corpus: generated WAVs and decoder output
 /morse-training/wav/
 /morse-training/out/
+
+# Talk Typer
+/target/
+/frontend/public/worklets/
+/frontend/src/wasm/
+/out-tsc
+/models/

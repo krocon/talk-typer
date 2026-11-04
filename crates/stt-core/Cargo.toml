@@ -1,0 +1,41 @@
+[package]
+name = "stt-core"
+description = "Platform-neutral local speech-to-text with Whisper (candle): resampling, VAD, chunking, mel, decoding"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+# No std::fs, no network, no threads: this crate must build for wasm32-unknown-unknown.
+# Models, tokenizer.json and config.json are passed in as bytes.
+
+[features]
+default = []
+metal = ["candle-core/metal", "candle-nn/metal", "candle-transformers/metal"]
+cuda = ["candle-core/cuda", "candle-nn/cuda", "candle-transformers/cuda"]
+accelerate = ["candle-core/accelerate", "candle-nn/accelerate", "candle-transformers/accelerate"]
+mkl = ["candle-core/mkl", "candle-nn/mkl", "candle-transformers/mkl"]
+
+[dependencies]
+candle-core.workspace = true
+candle-nn.workspace = true
+candle-transformers.workspace = true
+rubato.workspace = true
+# FFT for the log-mel spectrogram (already in the tree through rubato).
+realfft = "3.5"
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+
+[lints]
+workspace = true
+
+# candle pulls in rand → getrandom; in the browser it must use the JS crypto API.
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.3", features = ["wasm_js"] }
+
+[dev-dependencies]
+hound = "3.5"
+sha2 = "0.10"

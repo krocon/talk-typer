@@ -1,0 +1,85 @@
+<header class="top">
+  <h1>{{ t.appName }}</h1>
+  <span class="badge">{{ store.platform === 'desktop' ? t.desktop : t.web }}</span>
+</header>
+
+<main class="main">
+  <section class="controls" aria-label="Einstellungen">
+    <label>
+      <span>{{ t.model }}</span>
+      <select class="select" (change)="onModel($event)" [disabled]="store.listening()">
+        @for (m of store.models(); track m.id) {
+          <option [value]="m.id" [selected]="m.id === store.modelId()">
+            {{ m.label }} · {{ m.sizeMb }} MB
+          </option>
+        }
+      </select>
+    </label>
+    <label>
+      <span>{{ t.language }}</span>
+      <select class="select" (change)="onLanguage($event)" [disabled]="store.listening()">
+        @for (l of languages; track l.code) {
+          <option [value]="l.code" [selected]="l.code === store.language()">{{ l.label }}</option>
+        }
+      </select>
+    </label>
+    @if (store.platform === 'desktop') {
+      <label>
+        <span>{{ t.device }}</span>
+        <select class="select" (change)="onDevice($event)" [disabled]="store.listening()">
+          <option value="">{{ t.systemDefault }}</option>
+          @for (d of store.devices(); track d.id) {
+            <option [value]="d.id" [selected]="d.id === store.deviceId()">{{ d.name }}</option>
+          }
+        </select>
+      </label>
+    }
+  </section>
+
+  <section class="record">
+    <button
+      type="button"
+      class="rec"
+      [class.active]="store.listening()"
+      [style.--level]="levelScale()"
+      [attr.aria-pressed]="store.listening()"
+      [attr.aria-label]="store.listening() ? t.stop : t.start"
+      [disabled]="store.status() === 'loading'"
+      (click)="store.toggle()"
+    >
+      <span class="rec-dot" aria-hidden="true"></span>
+    </button>
+    <p class="status" role="status" aria-live="polite">
+      {{ t.status[store.status()] }}
+      @if (store.progress() !== null) {
+        <span> {{ (store.progress() ?? 0) * 100 | number: '1.0-0' }} %</span>
+      }
+    </p>
+    @if (errorText()) {
+      <p class="error" role="alert">{{ errorText() }}</p>
+    }
+  </section>
+
+  <section class="transcript" aria-label="{{ t.transcript }}">
+    <div class="text" aria-live="polite">
+      @if (store.text() || store.preliminary()) {
+        <span>{{ store.text() }}</span>
+        @if (store.preliminary()) {
+          <span class="preliminary"> {{ store.preliminary() }}</span>
+        }
+      } @else {
+        <span class="placeholder">{{ t.emptyTranscript }}</span>
+      }
+    </div>
+    <div class="actions">
+      <button type="button" class="btn" [disabled]="!store.text()" (click)="copy()">
+        {{ t.copy }}
+      </button>
+      <button type="button" class="btn" [disabled]="!store.text()" (click)="store.clear()">
+        {{ t.clear }}
+      </button>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">{{ t.privacy }}</footer>

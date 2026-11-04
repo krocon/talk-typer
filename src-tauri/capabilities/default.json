@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Least privilege: core defaults only (events, invoke of the app's own commands). No fs, shell or http plugins.",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}

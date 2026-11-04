@@ -1,0 +1,119 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "cli": {
+    "packageManager": "pnpm",
+    "analytics": false,
+    "schematicCollections": ["angular-eslint"]
+  },
+  "newProjectRoot": "projects",
+  "projects": {
+    "talk-typer": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": { "style": "css", "changeDetection": "OnPush" }
+      },
+      "root": "frontend",
+      "sourceRoot": "frontend/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "frontend/src/main.ts",
+            "tsConfig": "frontend/tsconfig.app.json",
+            "webWorkerTsConfig": "frontend/tsconfig.worker.json",
+            "outputPath": "dist/talk-typer",
+            "inlineStyleLanguage": "css",
+            "assets": [{ "glob": "**/*", "input": "frontend/public" }],
+            "styles": ["frontend/src/styles.css"]
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                { "type": "initial", "maximumWarning": "500kB", "maximumError": "1MB" },
+                { "type": "anyComponentStyle", "maximumWarning": "6kB", "maximumError": "10kB" }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            },
+            "desktop": {
+              "fileReplacements": [
+                {
+                  "replace": "frontend/src/app/stt/stt-platform.ts",
+                  "with": "frontend/src/app/stt/stt-platform.desktop.ts"
+                }
+              ],
+              "outputPath": "dist/talk-typer",
+              "budgets": [
+                { "type": "initial", "maximumWarning": "500kB", "maximumError": "1MB" },
+                { "type": "anyComponentStyle", "maximumWarning": "6kB", "maximumError": "10kB" }
+              ],
+              "outputHashing": "all"
+            },
+            "desktop-dev": {
+              "fileReplacements": [
+                {
+                  "replace": "frontend/src/app/stt/stt-platform.ts",
+                  "with": "frontend/src/app/stt/stt-platform.desktop.ts"
+                }
+              ],
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            },
+            "web": {
+              "fileReplacements": [
+                {
+                  "replace": "frontend/src/app/stt/stt-platform.ts",
+                  "with": "frontend/src/app/stt/stt-platform.web.ts"
+                }
+              ],
+              "outputPath": "dist/talk-typer-web",
+              "budgets": [
+                { "type": "initial", "maximumWarning": "500kB", "maximumError": "1MB" },
+                { "type": "anyComponentStyle", "maximumWarning": "6kB", "maximumError": "10kB" }
+              ],
+              "outputHashing": "all"
+            },
+            "web-dev": {
+              "fileReplacements": [
+                {
+                  "replace": "frontend/src/app/stt/stt-platform.ts",
+                  "with": "frontend/src/app/stt/stt-platform.web.ts"
+                }
+              ],
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "options": { "port": 1440 },
+          "configurations": {
+            "production": { "buildTarget": "talk-typer:build:production" },
+            "development": { "buildTarget": "talk-typer:build:development" },
+            "desktop-dev": { "buildTarget": "talk-typer:build:desktop-dev" },
+            "web-dev": { "buildTarget": "talk-typer:build:web-dev" }
+          },
+          "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": { "tsConfig": "frontend/tsconfig.spec.json" }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": { "lintFilePatterns": ["frontend/src/**/*.ts", "frontend/src/**/*.html"] }
+        }
+      }
+    }
+  }
+}
