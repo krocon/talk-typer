@@ -7,11 +7,11 @@ URL, eine SHA-256-Prüfsumme und eine Größe. Ein Download, dessen Prüfsumme n
 | Id | Gewichte | Quelle der Gewichte | Download gesamt |
 |---|---|---|---|
 | `tiny` | F32 safetensors | `openai/whisper-tiny` (Commit gepinnt) | 154 MB |
-| `tiny-q` | Q8_0 GGUF | `krocon/talk-typer-models` (selbst quantisiert) | 44 MB |
+| `tiny-q` | Q8_0 GGUF | `krocon/talk-typer-models` (selbst quantisiert, Commit gepinnt) | 44 MB |
 | `base` | F32 safetensors | `openai/whisper-base` (Commit gepinnt) | 293 MB |
-| `base-q` | Q8_0 GGUF | `krocon/talk-typer-models` (selbst quantisiert) | 83 MB |
+| `base-q` | Q8_0 GGUF | `krocon/talk-typer-models` (selbst quantisiert, Commit gepinnt) | 83 MB |
 | `small` | F32 safetensors | `openai/whisper-small` (Commit gepinnt) | 969 MB |
-| `small-q` | Q8_0 GGUF | `krocon/talk-typer-models` (selbst quantisiert) | 266 MB |
+| `small-q` | Q8_0 GGUF | `krocon/talk-typer-models` (selbst quantisiert, Commit gepinnt) | 266 MB |
 
 `config.json` und `tokenizer.json` kommen bei allen Varianten aus dem jeweiligen OpenAI-Repository.
 
@@ -35,12 +35,15 @@ OpenAI-Gewichte quantisiert, erhält bitgenau die Dateien mit den Prüfsummen au
 cargo run --release -p stt-core --example quantize -- --all upload/
 
 # einmalig: Repository anlegen und hochladen (HuggingFace-CLI, angemeldet als krocon)
-hf repo create krocon/talk-typer-models --repo-type model
-hf upload krocon/talk-typer-models upload/ . --repo-type model
+hf repos create krocon/talk-typer-models --public
+hf upload krocon/talk-typer-models upload/ .
 ```
 
-Bis die Dateien hochgeladen sind, erzeugt das Entwicklerwerkzeug (`--fetch` bei `examples/transcribe.rs`)
-quantisierte Modelle lokal aus den OpenAI-Gewichten; die App selbst kann sie dann noch nicht laden.
+Hochgeladen am 04.11.2026, Commit `648d42f7e6c729e764d9969bcd8b19240252e8d1`; auf diesen Commit zeigen die
+URLs im Katalog. Neue Dateien → neuer Commit → URLs und Prüfsummen im Katalog anpassen.
+
+Ist das Repository nicht erreichbar, erzeugt das Entwicklerwerkzeug (`--fetch` bei
+`examples/transcribe.rs`) quantisierte Modelle lokal aus den OpenAI-Gewichten.
 
 ## Messwerte
 

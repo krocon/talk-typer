@@ -76,10 +76,14 @@ macro_rules! openai {
 }
 
 /// Q8_0 GGUF made from the OpenAI weights with `examples/quantize.rs` (reproducible, see
-/// `docs/models.md`) and hosted in the project's own HuggingFace repository.
+/// `docs/models.md`) and hosted in the project's own HuggingFace repository, pinned to a commit.
 macro_rules! talk_typer {
     ($file:literal) => {
-        concat!("https://huggingface.co/krocon/talk-typer-models/resolve/main/", $file)
+        concat!(
+            "https://huggingface.co/krocon/talk-typer-models/resolve/",
+            "648d42f7e6c729e764d9969bcd8b19240252e8d1/",
+            $file
+        )
     };
 }
 
