@@ -6,6 +6,7 @@ pub const SEGMENT: &str = "stt://segment";
 pub const STATUS: &str = "stt://status";
 pub const DOWNLOAD_PROGRESS: &str = "stt://download-progress";
 pub const LEVEL: &str = "stt://level";
+pub const ERROR: &str = "stt://error";
 
 /// `idle | loading | listening | transcribing | error` – mirrored by `SttStatus` in TypeScript.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]

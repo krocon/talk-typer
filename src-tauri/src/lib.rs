@@ -4,23 +4,36 @@
 //! The frontend talks to this crate only through the commands in [`commands`] and the events in
 //! [`events`]. The only network access is the model download from HuggingFace.
 
+pub mod capture;
 pub mod commands;
 pub mod devices;
+pub mod engine;
 pub mod error;
 pub mod events;
+pub mod export;
+pub mod model_store;
+pub mod settings;
 
-use std::sync::Mutex;
+use engine::Engine;
+use model_store::ModelStore;
+use tauri::Manager;
 
-#[derive(Default)]
 pub struct AppState {
-    /// Selected cpal input device id; `None` = system default.
-    pub input_device: Mutex<Option<String>>,
+    pub models: ModelStore,
+    pub engine: Engine,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let result = tauri::Builder::default()
-        .manage(AppState::default())
+        // both plugins are used from Rust only; the webview gets no plugin permissions
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_store::Builder::new().build())
+        .setup(|app| {
+            let models = ModelStore::new(app.path().app_data_dir()?.join("models"));
+            app.manage(AppState { models, engine: Engine::default() });
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             commands::list_models,
             commands::download_model,
@@ -29,6 +42,9 @@ pub fn run() {
             commands::stop_listening,
             commands::list_input_devices,
             commands::set_input_device,
+            commands::save_text,
+            commands::load_settings,
+            commands::save_settings,
         ])
         .run(tauri::generate_context!());
     if let Err(e) = result {

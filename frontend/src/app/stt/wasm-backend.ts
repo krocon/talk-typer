@@ -6,42 +6,40 @@ import {
   InputDevice,
   ModelId,
   ModelInfo,
+  Settings,
+  SttError,
   SttStatus,
   TranscriptSegment,
   toSttError,
 } from './stt.models';
 
-/**
- * Models offered in the browser (subset of `stt-core/src/models.rs`, display data only; the worker
- * resolves the files). Phase 4 takes this list from stt-wasm (`listModels`).
- */
-const WEB_MODELS: ModelInfo[] = [
-  {
-    id: 'tiny-q',
-    label: 'Tiny (quantisiert)',
-    quantized: true,
-    sizeMb: 44,
-    melBins: 80,
-    files: [],
-  },
-  {
-    id: 'base-q',
-    label: 'Base (quantisiert)',
-    quantized: true,
-    sizeMb: 83,
-    melBins: 80,
-    files: [],
-  },
-  { id: 'tiny', label: 'Tiny', quantized: false, sizeMb: 154, melBins: 80, files: [] },
-  { id: 'base', label: 'Base', quantized: false, sizeMb: 293, melBins: 80, files: [] },
-];
+const SETTINGS_KEY = 'talk-typer.settings.v1';
 
-type Request = WorkerRequest extends infer R ? (R extends { id: number } ? R : never) : never;
+type Request = Extract<WorkerRequest, { id: number }>;
 type RequestWithoutId = Request extends infer R
   ? R extends Request
     ? Omit<R, 'id'>
     : never
   : never;
+
+interface Capture {
+  stream: MediaStream;
+  context: AudioContext;
+  node: AudioWorkletNode;
+}
+
+/** getUserMedia errors → app error codes. */
+function micError(e: unknown): SttError {
+  const name = e instanceof DOMException ? e.name : '';
+  if (name === 'NotAllowedError' || name === 'SecurityError') {
+    return { code: 'microphone_denied', message: name };
+  }
+  if (name === 'NotFoundError' || name === 'OverconstrainedError') {
+    return { code: 'no_input_device', message: name };
+  }
+  if (name === 'NotReadableError') return { code: 'audio_device', message: name };
+  return toSttError(e);
+}
 
 /** Browser backend: AudioWorklet → Web Worker → stt-wasm (Whisper on the CPU, WASM SIMD). */
 export class WasmBackend implements TranscriptionBackend {
@@ -51,6 +49,7 @@ export class WasmBackend implements TranscriptionBackend {
   });
   private readonly messages = new Subject<WorkerResponse>();
   private nextId = 1;
+  private capture: Capture | null = null;
 
   readonly segments$: Observable<TranscriptSegment> = this.messages.pipe(
     filter((m) => m.type === 'segment'),
@@ -64,6 +63,10 @@ export class WasmBackend implements TranscriptionBackend {
     filter((m) => m.type === 'level'),
     map((m) => m.level),
   );
+  readonly errors$: Observable<SttError> = this.messages.pipe(
+    filter((m) => m.type === 'error'),
+    map((m) => m.error),
+  );
 
   constructor() {
     this.worker.addEventListener('message', (ev: MessageEvent<WorkerResponse>) =>
@@ -72,7 +75,20 @@ export class WasmBackend implements TranscriptionBackend {
   }
 
   async listModels(): Promise<ModelInfo[]> {
-    return WEB_MODELS;
+    const id = this.nextId++;
+    const reply = new Promise<ModelInfo[]>((resolve, reject) => {
+      const sub = this.messages.subscribe((m) => {
+        if (m.type === 'models' && m.id === id) {
+          sub.unsubscribe();
+          resolve(m.models);
+        } else if (m.type === 'failed' && m.id === id) {
+          sub.unsubscribe();
+          reject(m.error);
+        }
+      });
+    });
+    this.worker.postMessage({ type: 'list', id } satisfies WorkerRequest);
+    return reply;
   }
 
   async loadModel(id: ModelId, onProgress: (p: number) => void): Promise<void> {
@@ -90,11 +106,59 @@ export class WasmBackend implements TranscriptionBackend {
   async start(opts: { language: 'auto' | string }): Promise<void> {
     const unsupported = checkBrowserSupport();
     if (unsupported) throw unsupported;
-    // Phase 4: getUserMedia + AudioWorklet (`/worklets/audio-capture.js`) → worker.
-    await this.request({ type: 'start', sampleRate: 16_000, language: opts.language });
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: { channelCount: 1, echoCancellation: false, noiseSuppression: false },
+      });
+    } catch (e) {
+      throw micError(e);
+    }
+    const context = new AudioContext();
+    try {
+      await context.audioWorklet.addModule(new URL('worklets/audio-capture.js', document.baseURI));
+      const source = context.createMediaStreamSource(stream);
+      const node = new AudioWorkletNode(context, 'audio-capture', {
+        numberOfInputs: 1,
+        numberOfOutputs: 1,
+        channelCount: 1,
+        channelCountMode: 'explicit',
+      });
+      // Some engines (Safari) only run a worklet that is connected to the destination: silent gain.
+      const mute = context.createGain();
+      mute.gain.value = 0;
+      source.connect(node).connect(mute).connect(context.destination);
+      await this.request({
+        type: 'start',
+        sampleRate: context.sampleRate,
+        channels: 1,
+        language: opts.language,
+      });
+      node.port.onmessage = (ev: MessageEvent<Float32Array>) => {
+        const samples = ev.data;
+        this.worker.postMessage(
+          { type: 'audio', samples, sentAt: Date.now() } satisfies WorkerRequest,
+          [samples.buffer],
+        );
+      };
+      if (context.state === 'suspended') await context.resume();
+      this.capture = { stream, context, node };
+    } catch (e) {
+      stream.getTracks().forEach((t) => t.stop());
+      void context.close();
+      throw toSttError(e);
+    }
   }
 
   async stop(): Promise<void> {
+    const c = this.capture;
+    this.capture = null;
+    if (c) {
+      c.node.port.onmessage = null;
+      c.node.disconnect();
+      c.stream.getTracks().forEach((t) => t.stop());
+      await c.context.close();
+    }
     await this.request({ type: 'stop' });
   }
 
@@ -104,6 +168,35 @@ export class WasmBackend implements TranscriptionBackend {
 
   async setInputDevice(): Promise<void> {
     // The browser chooses the device itself (getUserMedia permission prompt).
+  }
+
+  /** Browser download (the browser decides where the file goes). */
+  async saveText(fileName: string, contents: string): Promise<boolean> {
+    const url = URL.createObjectURL(new Blob([contents], { type: 'text/plain;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    return true;
+  }
+
+  async loadSettings(): Promise<Settings> {
+    try {
+      const raw = localStorage.getItem(SETTINGS_KEY);
+      const value: unknown = raw ? JSON.parse(raw) : {};
+      return typeof value === 'object' && value !== null ? (value as Settings) : {};
+    } catch {
+      return {};
+    }
+  }
+
+  async saveSettings(settings: Settings): Promise<void> {
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    } catch {
+      // private mode / storage disabled: settings are just not remembered
+    }
   }
 
   private request(msg: RequestWithoutId): Promise<void> {

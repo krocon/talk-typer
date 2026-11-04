@@ -3,12 +3,22 @@
  * `stt-core/src/models.rs`, `stt-core/src/segment.rs`, `src-tauri/src/events.rs`, `devices.rs`.
  */
 
-export type ModelId = 'tiny' | 'tiny-q' | 'base' | 'base-q' | 'small' | 'small-q';
+export type ModelId =
+  | 'tiny'
+  | 'tiny-q'
+  | 'base'
+  | 'base-q'
+  | 'small'
+  | 'small-q'
+  | 'large-v3-turbo'
+  | 'large-v3-turbo-q';
 
 export interface ModelFile {
   role: 'weights' | 'config' | 'tokenizer';
   url: string;
   sha256: string;
+  /** Exact size in bytes. */
+  size: number;
 }
 
 export interface ModelInfo {
@@ -19,6 +29,10 @@ export interface ModelInfo {
   sizeMb: number;
   melBins: number;
   files: ModelFile[];
+  /** Desktop: all files are in the local cache. */
+  downloaded?: boolean;
+  /** Desktop: currently loaded in memory. */
+  loaded?: boolean;
 }
 
 export interface TranscriptSegment {
@@ -30,6 +44,13 @@ export interface TranscriptSegment {
 }
 
 export type SttStatus = 'idle' | 'loading' | 'listening' | 'transcribing' | 'error';
+
+/** Persisted choices (desktop: tauri-plugin-store, browser: localStorage). */
+export interface Settings {
+  modelId?: ModelId | null;
+  language?: string | null;
+  deviceId?: string | null;
+}
 
 export interface InputDevice {
   id: string;
@@ -51,6 +72,11 @@ export type SttErrorCode =
   | 'no_input_device'
   | 'insecure_context'
   | 'unsupported_browser'
+  | 'download_failed'
+  | 'checksum_mismatch'
+  | 'model_missing'
+  | 'io'
+  | 'already_listening'
   | 'internal'
   | 'not_implemented';
 

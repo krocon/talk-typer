@@ -32,23 +32,29 @@ impl Vad {
         Self { cfg, pending: Vec::new(), silent_run: usize::MAX, level: 0.0 }
     }
 
+    pub fn frame_len(&self) -> usize {
+        self.cfg.frame_len.max(1)
+    }
+
+    /// Classifies one frame of [`frame_len`](Self::frame_len) samples.
+    pub fn classify(&mut self, frame: &[f32]) -> bool {
+        let rms = rms(frame);
+        self.level = rms;
+        if rms >= self.cfg.threshold {
+            self.silent_run = 0;
+        } else {
+            self.silent_run = self.silent_run.saturating_add(1);
+        }
+        self.silent_run <= self.cfg.hangover_frames
+    }
+
     /// Classifies the newly pushed samples frame by frame.
     pub fn push(&mut self, samples: &[f32]) -> Vec<bool> {
         self.pending.extend_from_slice(samples);
-        let n = self.cfg.frame_len.max(1);
-        let mut out = Vec::with_capacity(self.pending.len() / n);
-        for frame in self.pending.chunks_exact(n) {
-            let rms = rms(frame);
-            self.level = rms;
-            if rms >= self.cfg.threshold {
-                self.silent_run = 0;
-            } else {
-                self.silent_run = self.silent_run.saturating_add(1);
-            }
-            out.push(self.silent_run <= self.cfg.hangover_frames);
-        }
-        let used = out.len() * n;
-        self.pending.drain(..used);
+        let n = self.frame_len();
+        let frames: Vec<Vec<f32>> = self.pending.chunks_exact(n).map(<[f32]>::to_vec).collect();
+        let out: Vec<bool> = frames.iter().map(|f| self.classify(f)).collect();
+        self.pending.drain(..out.len() * n);
         out
     }
 }

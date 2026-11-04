@@ -18,3 +18,16 @@ wasm-bindgen = "0.2.100"
 
 [lints]
 workspace = true
+
+# wasm-opt must know the features rustc emits (the target_features section is stripped in release).
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = [
+    "-O3",
+    "--enable-simd",
+    "--enable-bulk-memory",
+    "--enable-mutable-globals",
+    "--enable-nontrapping-float-to-int",
+    "--enable-sign-ext",
+    "--enable-reference-types",
+    "--enable-multivalue",
+]

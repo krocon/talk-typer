@@ -24,6 +24,13 @@ thiserror.workspace = true
 stt-core.workspace = true
 # Native microphone capture (not getUserMedia in the WebView: unreliable in WebKitGTK/WKWebView).
 cpal = "0.18.2"
+# Model download from HuggingFace – the app's only network access. Already in the tree via Tauri.
+reqwest = { version = "0.13", default-features = false, features = ["rustls", "http2"] }
+sha2 = "0.10"
+# Native save dialog for .txt/.srt export – used from Rust only, the webview gets no dialog/fs rights.
+tauri-plugin-dialog = "2.8"
+# Persisted settings (model, language, input device) – used from Rust only.
+tauri-plugin-store = "2.5"
 
 # GPU on macOS via Metal, BLAS via Accelerate.
 [target.'cfg(target_os = "macos")'.dependencies]
@@ -32,6 +39,9 @@ stt-core = { workspace = true, features = ["metal", "accelerate"] }
 [features]
 # Optional NVIDIA GPU on Windows/Linux: `cargo build --features cuda` (needs the CUDA toolkit).
 cuda = ["stt-core/cuda"]
+
+[dev-dependencies]
+tempfile = "3"
 
 [lints]
 workspace = true

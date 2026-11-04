@@ -37,6 +37,7 @@ pub fn source_of(id: ModelId) -> Option<ModelId> {
         ModelId::TinyQ => Some(ModelId::Tiny),
         ModelId::BaseQ => Some(ModelId::Base),
         ModelId::SmallQ => Some(ModelId::Small),
+        ModelId::LargeTurboQ => Some(ModelId::LargeTurbo),
         _ => None,
     }
 }

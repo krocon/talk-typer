@@ -1,11 +1,12 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { TranscriptionBackend } from './stt-backend';
 import {
   InputDevice,
   ModelId,
   ModelInfo,
+  Settings,
   SttStatus,
   TranscriptSegment,
   toSttError,
@@ -16,6 +17,7 @@ const EV_SEGMENT = 'stt://segment';
 const EV_STATUS = 'stt://status';
 const EV_DOWNLOAD = 'stt://download-progress';
 const EV_LEVEL = 'stt://level';
+const EV_ERROR = 'stt://error';
 
 interface DownloadProgress {
   modelId: ModelId;
@@ -45,6 +47,7 @@ export class TauriBackend implements TranscriptionBackend {
   readonly segments$ = fromEvent<TranscriptSegment>(EV_SEGMENT);
   readonly status$ = fromEvent<SttStatus>(EV_STATUS);
   readonly level$ = fromEvent<number>(EV_LEVEL);
+  readonly errors$ = fromEvent<unknown>(EV_ERROR).pipe(map(toSttError));
 
   listModels(): Promise<ModelInfo[]> {
     return call<ModelInfo[]>('list_models');
@@ -77,5 +80,17 @@ export class TauriBackend implements TranscriptionBackend {
 
   setInputDevice(id: string | null): Promise<void> {
     return call<void>('set_input_device', { deviceId: id });
+  }
+
+  async saveText(fileName: string, contents: string): Promise<boolean> {
+    return (await call<string | null>('save_text', { fileName, contents })) !== null;
+  }
+
+  loadSettings(): Promise<Settings> {
+    return call<Settings>('load_settings');
+  }
+
+  saveSettings(settings: Settings): Promise<void> {
+    return call<void>('save_settings', { settings });
   }
 }

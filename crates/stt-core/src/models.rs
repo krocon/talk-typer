@@ -15,6 +15,8 @@ pub enum ModelId {
     BaseQ,
     Small,
     SmallQ,
+    LargeTurbo,
+    LargeTurboQ,
 }
 
 impl ModelId {
@@ -26,6 +28,8 @@ impl ModelId {
             Self::BaseQ => "base-q",
             Self::Small => "small",
             Self::SmallQ => "small-q",
+            Self::LargeTurbo => "large-v3-turbo",
+            Self::LargeTurboQ => "large-v3-turbo-q",
         }
     }
 
@@ -76,10 +80,14 @@ macro_rules! openai {
 }
 
 /// Q8_0 GGUF made from the OpenAI weights with `examples/quantize.rs` (reproducible, see
-/// `docs/models.md`) and hosted in the project's own HuggingFace repository.
+/// `docs/models.md`) and hosted in the project's own HuggingFace repository, pinned to a commit.
 macro_rules! talk_typer {
     ($file:literal) => {
-        concat!("https://huggingface.co/krocon/talk-typer-models/resolve/main/", $file)
+        concat!(
+            "https://huggingface.co/krocon/talk-typer-models/resolve/",
+            "725f98c8c2c0655e18e3750cb60b5c764d1f5180/",
+            $file
+        )
     };
 }
 
@@ -260,6 +268,80 @@ pub const MODELS: &[ModelInfo] = &[
             },
         ],
     },
+    ModelInfo {
+        id: ModelId::LargeTurbo,
+        label: "Large v3 Turbo",
+        quantized: false,
+        size_mb: 1621,
+        mel_bins: 128,
+        files: &[
+            ModelFile {
+                role: "weights",
+                url: openai!(
+                    "large-v3-turbo",
+                    "41f01f3fe87f28c78e2fbf8b568835947dd65ed9",
+                    "model.safetensors"
+                ),
+                sha256: "542566a422ae4f3fd23f1ba11add198fca01bbf82e66e6a2857b3f608b1eb9d1",
+                size: 1617824864,
+            },
+            ModelFile {
+                role: "config",
+                url: openai!(
+                    "large-v3-turbo",
+                    "41f01f3fe87f28c78e2fbf8b568835947dd65ed9",
+                    "config.json"
+                ),
+                sha256: "c5b526b3e3cd64cd8940dabb45e8ba726629e22d8ed389c29b552f9140daf04a",
+                size: 1256,
+            },
+            ModelFile {
+                role: "tokenizer",
+                url: openai!(
+                    "large-v3-turbo",
+                    "41f01f3fe87f28c78e2fbf8b568835947dd65ed9",
+                    "tokenizer.json"
+                ),
+                sha256: "297b13372ac43916285644fb9687add3cc62ee2a1adb60da3dc25cc94c1871fd",
+                size: 2710337,
+            },
+        ],
+    },
+    ModelInfo {
+        id: ModelId::LargeTurboQ,
+        label: "Large v3 Turbo (quantisiert)",
+        quantized: true,
+        size_mb: 880,
+        mel_bins: 128,
+        files: &[
+            ModelFile {
+                role: "weights",
+                url: talk_typer!("model-large-v3-turbo-q80.gguf"),
+                sha256: "be7eb5055941619f37c2042d1fba64957a6aecc8f3336a99d7721b1b0f0e53e4",
+                size: 877083360,
+            },
+            ModelFile {
+                role: "config",
+                url: openai!(
+                    "large-v3-turbo",
+                    "41f01f3fe87f28c78e2fbf8b568835947dd65ed9",
+                    "config.json"
+                ),
+                sha256: "c5b526b3e3cd64cd8940dabb45e8ba726629e22d8ed389c29b552f9140daf04a",
+                size: 1256,
+            },
+            ModelFile {
+                role: "tokenizer",
+                url: openai!(
+                    "large-v3-turbo",
+                    "41f01f3fe87f28c78e2fbf8b568835947dd65ed9",
+                    "tokenizer.json"
+                ),
+                sha256: "297b13372ac43916285644fb9687add3cc62ee2a1adb60da3dc25cc94c1871fd",
+                size: 2710337,
+            },
+        ],
+    },
 ];
 
 /// Base URL of the model host – the only network destination of the app.
@@ -278,6 +360,8 @@ mod tests {
             ModelId::BaseQ,
             ModelId::Small,
             ModelId::SmallQ,
+            ModelId::LargeTurbo,
+            ModelId::LargeTurboQ,
         ] {
             assert_eq!(MODELS.iter().filter(|m| m.id == id).count(), 1, "{id:?}");
             assert_eq!(ModelId::parse(id.as_str()), Some(id));

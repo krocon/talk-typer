@@ -1,85 +1,249 @@
-<header class="top">
-  <h1>{{ t.appName }}</h1>
-  <span class="badge">{{ store.platform === 'desktop' ? t.desktop : t.web }}</span>
-</header>
-
-<main class="main">
-  <section class="controls" aria-label="Einstellungen">
-    <label>
-      <span>{{ t.model }}</span>
-      <select class="select" (change)="onModel($event)" [disabled]="store.listening()">
-        @for (m of store.models(); track m.id) {
-          <option [value]="m.id" [selected]="m.id === store.modelId()">
-            {{ m.label }} · {{ m.sizeMb }} MB
-          </option>
-        }
-      </select>
-    </label>
-    <label>
-      <span>{{ t.language }}</span>
-      <select class="select" (change)="onLanguage($event)" [disabled]="store.listening()">
-        @for (l of languages; track l.code) {
-          <option [value]="l.code" [selected]="l.code === store.language()">{{ l.label }}</option>
-        }
-      </select>
-    </label>
-    @if (store.platform === 'desktop') {
-      <label>
-        <span>{{ t.device }}</span>
-        <select class="select" (change)="onDevice($event)" [disabled]="store.listening()">
-          <option value="">{{ t.systemDefault }}</option>
-          @for (d of store.devices(); track d.id) {
-            <option [value]="d.id" [selected]="d.id === store.deviceId()">{{ d.name }}</option>
+<main class="stage">
+  <section class="device" [attr.aria-label]="t.recorder">
+    <div class="screen" [class.live]="store.listening()">
+      <header class="screen-status">
+        <span class="clock">{{ clock() }}</span>
+        <span class="state" role="status" aria-live="polite">
+          <span class="dot" [class.on]="store.listening()" aria-hidden="true"></span>
+          {{ store.openingMic() ? t.openingMic : t.status[store.status()] }}
+          @if (store.progress() !== null) {
+            {{ (store.progress() ?? 0) * 100 | number: '1.0-0' }} %
           }
-        </select>
-      </label>
-    }
-  </section>
+        </span>
+        <span class="badges">
+          <span class="badge">{{ store.modelId().toUpperCase() }}</span>
+          <span class="badge">{{ store.platform === 'desktop' ? 'NATIV' : 'WASM' }}</span>
+        </span>
+      </header>
 
-  <section class="record">
-    <button
-      type="button"
-      class="rec"
-      [class.active]="store.listening()"
-      [style.--level]="levelScale()"
-      [attr.aria-pressed]="store.listening()"
-      [attr.aria-label]="store.listening() ? t.stop : t.start"
-      [disabled]="store.status() === 'loading'"
-      (click)="store.toggle()"
-    >
-      <span class="rec-dot" aria-hidden="true"></span>
-    </button>
-    <p class="status" role="status" aria-live="polite">
-      {{ t.status[store.status()] }}
-      @if (store.progress() !== null) {
-        <span> {{ (store.progress() ?? 0) * 100 | number: '1.0-0' }} %</span>
-      }
-    </p>
-    @if (errorText()) {
-      <p class="error" role="alert">{{ errorText() }}</p>
-    }
-  </section>
-
-  <section class="transcript" aria-label="{{ t.transcript }}">
-    <div class="text" aria-live="polite">
-      @if (store.text() || store.preliminary()) {
-        <span>{{ store.text() }}</span>
-        @if (store.preliminary()) {
-          <span class="preliminary"> {{ store.preliminary() }}</span>
-        }
+      @if (settingsOpen()) {
+        <div class="menu" role="group" [attr.aria-label]="t.settings">
+          <label>
+            <span>{{ t.model }}</span>
+            <select [disabled]="store.listening()" (change)="onModel($event)">
+              @for (m of store.models(); track m.id) {
+                <option [value]="m.id" [selected]="m.id === store.modelId()">
+                  {{ modelOptionLabel(m) }}
+                </option>
+              }
+            </select>
+          </label>
+          <label>
+            <span>{{ t.language }}</span>
+            <select [disabled]="store.listening()" (change)="onLanguage($event)">
+              @for (l of languages; track l.code) {
+                <option [value]="l.code" [selected]="l.code === store.language()">
+                  {{ l.label }}
+                </option>
+              }
+            </select>
+          </label>
+          <div class="menu-row">
+            <span>{{ t.export }}</span>
+            <div class="menu-actions">
+              <button
+                type="button"
+                [disabled]="!store.text()"
+                [attr.aria-label]="t.saveTxt"
+                (click)="save('txt')"
+              >
+                {{ saved() === 'txt' ? t.saved : '.txt' }}
+              </button>
+              <button
+                type="button"
+                [disabled]="!store.text()"
+                [attr.aria-label]="t.saveSrt"
+                (click)="save('srt')"
+              >
+                {{ saved() === 'srt' ? t.saved : '.srt' }}
+              </button>
+            </div>
+          </div>
+          @if (store.platform === 'desktop') {
+            <label>
+              <span>{{ t.device }}</span>
+              <select [disabled]="store.listening()" (change)="onDevice($event)">
+                <option value="">{{ t.systemDefault }}</option>
+                @for (d of store.devices(); track d.id) {
+                  <option [value]="d.id" [selected]="d.id === store.deviceId()">
+                    {{ d.name }}
+                  </option>
+                }
+              </select>
+            </label>
+          }
+        </div>
       } @else {
-        <span class="placeholder">{{ t.emptyTranscript }}</span>
+        <app-waveform class="wave" [levels]="store.levels()" [active]="store.listening()" />
+        @if (!wide()) {
+          <div #scroller class="screen-text" aria-live="polite" [attr.aria-label]="t.transcript">
+            @if (store.text() || store.preliminary()) {
+              <span>{{ store.text() }}</span>
+              @if (store.preliminary()) {
+                <span class="preliminary"> {{ store.preliminary() }}</span>
+              }
+            } @else {
+              <span class="placeholder">{{ t.emptyTranscript }}</span>
+            }
+          </div>
+        }
+      }
+
+      @if (store.progress() !== null) {
+        <div
+          class="progress"
+          role="progressbar"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          [attr.aria-valuenow]="(store.progress() ?? 0) * 100 | number: '1.0-0'"
+        >
+          <span [style.width.%]="(store.progress() ?? 0) * 100"></span>
+        </div>
+      }
+      @if (store.openingMic()) {
+        <p class="screen-hint">{{ t.micHint }}</p>
+      }
+      @if (errorText()) {
+        <p class="screen-error" role="alert">{{ errorText() }}</p>
+      }
+      <div class="timer" aria-hidden="true">{{ timer() }}</div>
+    </div>
+
+    <div class="strip">
+      <span class="pill">{{ languageCode() }}</span>
+      <span class="grille" aria-hidden="true"></span>
+      @if (!wide()) {
+        <button type="button" class="pill pill-btn" [disabled]="!store.text()" (click)="copy()">
+          {{ copied() ? t.copied : t.copy }}
+        </button>
       }
     </div>
-    <div class="actions">
-      <button type="button" class="btn" [disabled]="!store.text()" (click)="copy()">
-        {{ t.copy }}
+
+    <div class="keys">
+      <button
+        type="button"
+        class="key key-big key-rec"
+        [class.armed]="store.listening()"
+        [attr.aria-label]="t.start"
+        [disabled]="store.listening() || store.busy()"
+        (click)="record()"
+      >
+        <span class="cap"><span class="ico-rec" aria-hidden="true"></span></span>
       </button>
-      <button type="button" class="btn" [disabled]="!store.text()" (click)="store.clear()">
-        {{ t.clear }}
+      <button
+        type="button"
+        class="key key-big"
+        [attr.aria-label]="t.stop"
+        [disabled]="!store.listening() || store.busy()"
+        (click)="store.stop()"
+      >
+        <span class="cap"><span class="ico-stop" aria-hidden="true"></span></span>
       </button>
+      <div class="key-col">
+        <button
+          type="button"
+          class="key"
+          [attr.aria-label]="settingsOpen() ? t.closeSettings : t.settings"
+          [attr.aria-expanded]="settingsOpen()"
+          (click)="toggleSettings()"
+        >
+          <span class="cap">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 7h10M18 7h2M4 17h4M12 17h8" />
+              <circle cx="16" cy="7" r="2" />
+              <circle cx="10" cy="17" r="2" />
+            </svg>
+          </span>
+        </button>
+        <button
+          type="button"
+          class="key"
+          [attr.aria-label]="t.clearAll"
+          [disabled]="store.listening() || (!store.text() && !store.lastDuration())"
+          (click)="store.clear()"
+        >
+          <span class="cap">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M19 12a7 7 0 1 1-2.05-4.95" />
+              <path d="M19 4v4h-4" />
+            </svg>
+          </span>
+        </button>
+      </div>
     </div>
   </section>
-</main>
 
-<footer class="foot">{{ t.privacy }}</footer>
+  @if (wide()) {
+    <section class="paper" [attr.aria-label]="t.transcript">
+      <header class="paper-head">
+        <div class="paper-title">
+          <h1>{{ t.transcript }}</h1>
+          <p class="paper-meta">
+            @if (store.listening()) {
+              <span class="live-tag"><span class="live-dot" aria-hidden="true"></span>Live</span>
+              ·
+            }
+            {{ wordCount() }} {{ wordCount() === 1 ? 'Wort' : 'Wörter' }} · {{ timer() }}
+          </p>
+        </div>
+        <div class="actions">
+          <button
+            type="button"
+            class="btn"
+            [disabled]="!store.text()"
+            [attr.aria-label]="t.saveTxt"
+            (click)="save('txt')"
+          >
+            {{ saved() === 'txt' ? t.saved : '.txt' }}
+          </button>
+          <button
+            type="button"
+            class="btn"
+            [disabled]="!store.text()"
+            [attr.aria-label]="t.saveSrt"
+            (click)="save('srt')"
+          >
+            {{ saved() === 'srt' ? t.saved : '.srt' }}
+          </button>
+          <button type="button" class="btn" [disabled]="!store.text()" (click)="copy()">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="8" y="8" width="12" height="12" rx="2" />
+              <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
+            </svg>
+            {{ copied() ? t.copied : t.copy }}
+          </button>
+        </div>
+      </header>
+      <div #scroller class="text" aria-live="polite">
+        @for (seg of store.segments(); track $index) {
+          <p class="seg">
+            <time class="stamp">{{ formatStamp(seg.startMs) }}</time>
+            <span>{{ seg.text }}</span>
+          </p>
+        }
+        @if (store.preliminary()) {
+          <p class="seg preliminary">
+            <span class="stamp" aria-hidden="true">···</span>
+            <span>{{ store.preliminary() }}</span>
+          </p>
+        }
+        @if (!store.segments().length && !store.preliminary()) {
+          <div class="empty">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="9" y="3" width="6" height="11" rx="3" />
+              <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
+            </svg>
+            <p>{{ t.emptyTranscript }}</p>
+          </div>
+        }
+      </div>
+      <footer class="foot">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="5" y="11" width="14" height="10" rx="2" />
+          <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+        </svg>
+        {{ t.privacy }}
+      </footer>
+    </section>
+  }
+</main>
