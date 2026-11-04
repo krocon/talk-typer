@@ -8,6 +8,7 @@
 .stage {
   display: flex;
   gap: 6px;
+  background: var(--stage);
   height: 100%;
   padding: 6px;
 }
@@ -38,9 +39,15 @@
   flex-direction: column;
   padding: 16px 18px 18px;
   border-radius: var(--radius-screen);
+  /* fine horizontal lines (light + dark pair every 3px) over a graphite gradient */
   background:
-    repeating-linear-gradient(0deg, var(--screen-scan) 0 1px, transparent 1px 3px),
-    linear-gradient(180deg, #1a1a1c 0%, var(--screen) 55%);
+    repeating-linear-gradient(
+      180deg,
+      var(--screen-scan) 0 1px,
+      var(--screen-scan-dark) 1px 2px,
+      transparent 2px 3px
+    ),
+    linear-gradient(165deg, var(--screen-top) 0%, #1a1a1c 40%, var(--screen) 100%);
   box-shadow:
     0 0 0 2px #000,
     inset 0 0 18px rgb(0 0 0 / 70%);
@@ -305,12 +312,12 @@
 }
 
 .key[aria-expanded='true'] .cap {
-  transform: translateY(1px);
-  box-shadow: inset 0 2px 5px rgb(0 0 0 / 25%);
+  filter: brightness(0.94);
 }
 
 .key:active:not(:disabled) .cap {
-  transform: translateY(1px) scale(0.97);
+  transform: scale(0.98);
+  filter: brightness(0.97);
 }
 
 .key:disabled {

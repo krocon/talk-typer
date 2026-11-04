@@ -9,6 +9,7 @@ mod support;
 use std::path::Path;
 use stt_core::chunker::ChunkerConfig;
 use stt_core::pipeline::Pipeline;
+use stt_core::vad::VadConfig;
 use stt_core::whisper::{Transcriber, best_device};
 use stt_core::{ModelId, Segment};
 
@@ -22,10 +23,14 @@ fn sample() -> Vec<f32> {
 }
 
 fn stream(audio: &[f32], partials: bool) -> (Vec<Segment>, Vec<Segment>) {
+    let cfg = ChunkerConfig { partial_every: partials.then_some(32_000), ..Default::default() };
+    stream_with(audio, cfg)
+}
+
+fn stream_with(audio: &[f32], cfg: ChunkerConfig) -> (Vec<Segment>, Vec<Segment>) {
     let id = model();
     assert!(support::model_present(id), "model {} missing", id.as_str());
     let mut t = Transcriber::load(support::load_model(id).unwrap(), &best_device()).unwrap();
-    let cfg = ChunkerConfig { partial_every: partials.then_some(32_000), ..Default::default() };
     let mut p = Pipeline::new(cfg, Some("de".into()));
     let mut all = Vec::new();
     for block in audio.chunks(1_600) {
@@ -73,16 +78,42 @@ fn pauses_close_chunks() {
 #[test]
 #[ignore = "needs a downloaded model"]
 fn long_recording_keeps_every_sentence_once() {
-    let audio =
-        support::load_wav(&Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/data/de-long.wav"))
-            .unwrap();
-    let (finals, _) = stream(&audio, true);
-    for f in &finals {
+    let (finals, _) = stream(&long_audio(), true);
+    check_long(
+        &finals,
+        &["lokal", "cloud", "speicher", "abschnitt", "kopieren", "prozessor", "schluss"],
+    );
+}
+
+/// The browser's settings (`stt.worker.ts`): 12 s chunks, 300 ms pause, no partials.
+/// Splits happen inside sentences here – no text may get lost.
+#[test]
+#[ignore = "needs a downloaded model"]
+fn long_recording_with_browser_chunking_loses_nothing() {
+    let base = ChunkerConfig::default();
+    let cfg = ChunkerConfig {
+        partial_every: None,
+        max_len: 12 * 16_000,
+        vad: VadConfig { hangover_frames: 10, ..base.vad },
+        ..base
+    };
+    let (finals, _) = stream_with(&long_audio(), cfg);
+    check_long(&finals, &["lokal", "cloud", "kopieren", "prozessor", "schluss"]);
+}
+
+fn long_audio() -> Vec<f32> {
+    support::load_wav(&Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/data/de-long.wav"))
+        .unwrap()
+}
+
+/// Every sentence once: `words` are ones even `tiny` gets right – the tests are about chunking,
+/// not recognition quality.
+fn check_long(finals: &[Segment], words: &[&str]) {
+    for f in finals {
         println!("{:>6}–{:>6} {}", f.start_ms, f.end_ms, f.text);
     }
-    let t = text(&finals);
-    // words even `tiny` gets right – the test is about chunking, not recognition quality
-    for word in ["lokal", "cloud", "speicher", "abschnitt", "kopieren", "prozessor", "schluss"] {
+    let t = text(finals);
+    for &word in words {
         let n = t.split(|c: char| !c.is_alphanumeric()).filter(|w| *w == word).count();
         assert_eq!(n, 1, "'{word}' not exactly once in: {t}");
     }

@@ -229,7 +229,8 @@ impl Transcriber {
             let mut text_tokens: Vec<u32> = Vec::new();
             for &t in &tokens {
                 if t >= ts_begin {
-                    let ms = (t - ts_begin) as u64 * TIMESTAMP_STEP_MS;
+                    // Whisper may place a timestamp in the padding after the audio: clamp
+                    let ms = ((t - ts_begin) as u64 * TIMESTAMP_STEP_MS).min(duration_ms);
                     if text_tokens.is_empty() {
                         start = Some(ms);
                     } else {

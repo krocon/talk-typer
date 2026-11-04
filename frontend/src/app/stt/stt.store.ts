@@ -21,7 +21,8 @@ export class SttStore {
   readonly platform = this.backend.platform;
   readonly status = signal<SttStatus>('idle');
   readonly models = signal<ModelInfo[]>([]);
-  readonly modelId = signal<ModelId>(this.platform === 'desktop' ? 'base' : 'tiny-q');
+  /** Desktop: best quality, fast enough with Metal/GPU; browser: smallest (CPU/WASM). */
+  readonly modelId = signal<ModelId>(this.platform === 'desktop' ? 'large-v3-turbo' : 'tiny-q');
   readonly language = signal<string>('de');
   readonly devices = signal<InputDevice[]>([]);
   readonly deviceId = signal<string | null>(null);

@@ -3,12 +3,22 @@
  * `stt-core/src/models.rs`, `stt-core/src/segment.rs`, `src-tauri/src/events.rs`, `devices.rs`.
  */
 
-export type ModelId = 'tiny' | 'tiny-q' | 'base' | 'base-q' | 'small' | 'small-q';
+export type ModelId =
+  | 'tiny'
+  | 'tiny-q'
+  | 'base'
+  | 'base-q'
+  | 'small'
+  | 'small-q'
+  | 'large-v3-turbo'
+  | 'large-v3-turbo-q';
 
 export interface ModelFile {
   role: 'weights' | 'config' | 'tokenizer';
   url: string;
   sha256: string;
+  /** Exact size in bytes. */
+  size: number;
 }
 
 export interface ModelInfo {

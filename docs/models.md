@@ -12,10 +12,14 @@ URL, eine SHA-256-Prüfsumme und eine Größe. Ein Download, dessen Prüfsumme n
 | `base-q` | Q8_0 GGUF | `krocon/talk-typer-models` (selbst quantisiert, Commit gepinnt) | 83 MB |
 | `small` | F32 safetensors | `openai/whisper-small` (Commit gepinnt) | 969 MB |
 | `small-q` | Q8_0 GGUF | `krocon/talk-typer-models` (selbst quantisiert, Commit gepinnt) | 266 MB |
+| `large-v3-turbo` | F32 safetensors | `openai/whisper-large-v3-turbo` (Commit gepinnt) | 1621 MB |
+| `large-v3-turbo-q` | Q8_0 GGUF | `krocon/talk-typer-models` (selbst quantisiert, **noch hochzuladen**) | 880 MB |
 
 `config.json` und `tokenizer.json` kommen bei allen Varianten aus dem jeweiligen OpenAI-Repository.
 
-Standard: Desktop `base` (mit Metal/GPU schnell genug), Browser `tiny-q` (kleinster Download, CPU/WASM).
+Standard: Desktop `large-v3-turbo` (beste Erkennung, mit Metal/GPU schneller als `small`), Browser
+`tiny-q` (kleinster Download; im Browser rechnet nur die CPU). `large-v3-turbo` nutzt 128 Mel-Bänder
+statt 80 und wird im Browser nicht angeboten (dort zu langsam).
 
 ## Warum selbst quantisiert?
 
@@ -58,6 +62,8 @@ Sprache fest auf Deutsch. Wortfehlerrate (WER) gegen den gesprochenen Text, Zahl
 | `base-q` | 11,3 s | 3,1 s | 6,5 % |
 | `small` | 34,7 s | 6,0 s | 3,3 % |
 | `small-q` | 30,8 s | 5,1 s | 3,3 % |
+| `large-v3-turbo` | 30,0 s | 4,9 s | 0 % |
+| `large-v3-turbo-q` | 24,9 s | 4,0 s | 0 % |
 
 - Q8_0 kostet hier keine Qualität, ist auf der CPU aber kaum schneller – der Gewinn ist die 3,6-fach
   kleinere Datei (wichtig im Browser).
@@ -66,3 +72,16 @@ Sprache fest auf Deutsch. Wortfehlerrate (WER) gegen den gesprochenen Text, Zahl
 - Synthetische Sprache ist leichter als echte Aufnahmen; die WER-Werte sind nur ein Vergleich der
   Modelle untereinander. Browser-Werte (WASM, CPU, ohne Threads) folgen in Phase 4; erwartet wird
   deutlich langsamer als die native CPU (Schätzung, noch nicht gemessen).
+
+### Browser (WASM, CPU, ohne Threads)
+
+Gleiche Aufnahme im Browser-Worker (Chromium, Apple Silicon):
+
+| Modell | erstes Laden | Durchsatz | Text |
+|---|---|---|---|
+| `tiny-q` | 5 s (44 MB), danach 0,2 s aus dem Cache | 38,5 s Audio in 29,6 s | wie nativ |
+| `base-q` | 13 s (83 MB) | 38,5 s Audio in 65,8 s (langsamer als Echtzeit) | wie nativ |
+
+Live im Echtzeit-Takt mit `tiny-q`: Text erscheint 6–13 s nach dem Sprechen, 6 s nach dem Stopp ist
+alles fertig. Der Browser nutzt deshalb kürzere Abschnitte (≤ 12 s, Pause 0,3 s) und keine
+vorläufigen Ergebnisse (`stt.worker.ts`). Für gute Erkennung ist die Desktop-App gedacht.

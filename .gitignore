@@ -65,6 +65,6 @@ Thumbs.db
 # Talk Typer
 /target/
 /frontend/public/worklets/
-/frontend/src/wasm/
+/frontend/public/wasm/
 /out-tsc
 /models/

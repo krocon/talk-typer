@@ -66,9 +66,17 @@ impl Pipeline {
                 }
             }
             ChunkKind::Split => {
-                let done_ms = offset_ms + w.consumed as u64 * 1000 / WHISPER_SAMPLE_RATE as u64;
-                self.chunker.commit_split(w.consumed);
-                w.segments.into_iter().filter(|s| w.consumed > 0 && s.end_ms <= done_ms).collect()
+                if w.consumed > 0 {
+                    // keep complete segments; the unfinished rest is transcribed again next time
+                    let done_ms = offset_ms + w.consumed as u64 * 1000 / WHISPER_SAMPLE_RATE as u64;
+                    self.chunker.commit_split(w.consumed);
+                    w.segments.into_iter().filter(|s| s.end_ms <= done_ms).collect()
+                } else {
+                    // no closing timestamp: take the text as it is and continue without overlap –
+                    // a word cut at the boundary is better than losing the whole chunk
+                    self.chunker.commit_split(chunk.samples.len());
+                    w.segments
+                }
             }
         })
     }

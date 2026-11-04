@@ -11,7 +11,10 @@
     "talk-typer": {
       "projectType": "application",
       "schematics": {
-        "@schematics/angular:component": { "style": "css", "changeDetection": "OnPush" }
+        "@schematics/angular:component": {
+          "style": "css",
+          "changeDetection": "OnPush"
+        }
       },
       "root": "frontend",
       "sourceRoot": "frontend/src",
@@ -25,14 +28,28 @@
             "webWorkerTsConfig": "frontend/tsconfig.worker.json",
             "outputPath": "dist/talk-typer",
             "inlineStyleLanguage": "css",
-            "assets": [{ "glob": "**/*", "input": "frontend/public" }],
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "frontend/public",
+                "ignore": ["**/*.d.ts", "**/.gitignore"]
+              }
+            ],
             "styles": ["frontend/src/styles.css"]
           },
           "configurations": {
             "production": {
               "budgets": [
-                { "type": "initial", "maximumWarning": "500kB", "maximumError": "1MB" },
-                { "type": "anyComponentStyle", "maximumWarning": "10kB", "maximumError": "16kB" }
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "10kB",
+                  "maximumError": "16kB"
+                }
               ],
               "outputHashing": "all"
             },
@@ -50,10 +67,25 @@
               ],
               "outputPath": "dist/talk-typer",
               "budgets": [
-                { "type": "initial", "maximumWarning": "500kB", "maximumError": "1MB" },
-                { "type": "anyComponentStyle", "maximumWarning": "10kB", "maximumError": "16kB" }
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "10kB",
+                  "maximumError": "16kB"
+                }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "assets": [
+                {
+                  "glob": "**/*",
+                  "input": "frontend/public",
+                  "ignore": ["wasm/**", "worklets/**"]
+                }
+              ]
             },
             "desktop-dev": {
               "fileReplacements": [
@@ -64,7 +96,14 @@
               ],
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "assets": [
+                {
+                  "glob": "**/*",
+                  "input": "frontend/public",
+                  "ignore": ["wasm/**", "worklets/**"]
+                }
+              ]
             },
             "web": {
               "fileReplacements": [
@@ -75,8 +114,16 @@
               ],
               "outputPath": "dist/talk-typer-web",
               "budgets": [
-                { "type": "initial", "maximumWarning": "500kB", "maximumError": "1MB" },
-                { "type": "anyComponentStyle", "maximumWarning": "10kB", "maximumError": "16kB" }
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "10kB",
+                  "maximumError": "16kB"
+                }
               ],
               "outputHashing": "all"
             },
@@ -96,22 +143,36 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
-          "options": { "port": 1440 },
+          "options": {
+            "port": 1440
+          },
           "configurations": {
-            "production": { "buildTarget": "talk-typer:build:production" },
-            "development": { "buildTarget": "talk-typer:build:development" },
-            "desktop-dev": { "buildTarget": "talk-typer:build:desktop-dev" },
-            "web-dev": { "buildTarget": "talk-typer:build:web-dev" }
+            "production": {
+              "buildTarget": "talk-typer:build:production"
+            },
+            "development": {
+              "buildTarget": "talk-typer:build:development"
+            },
+            "desktop-dev": {
+              "buildTarget": "talk-typer:build:desktop-dev"
+            },
+            "web-dev": {
+              "buildTarget": "talk-typer:build:web-dev"
+            }
           },
           "defaultConfiguration": "development"
         },
         "test": {
           "builder": "@angular/build:unit-test",
-          "options": { "tsConfig": "frontend/tsconfig.spec.json" }
+          "options": {
+            "tsConfig": "frontend/tsconfig.spec.json"
+          }
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
-          "options": { "lintFilePatterns": ["frontend/src/**/*.ts", "frontend/src/**/*.html"] }
+          "options": {
+            "lintFilePatterns": ["frontend/src/**/*.ts", "frontend/src/**/*.html"]
+          }
         }
       }
     }
