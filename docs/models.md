@@ -21,6 +21,46 @@ Standard: Desktop `large-v3-turbo-q` (beste Erkennung, mit Metal/GPU schneller a
 `tiny-q` (kleinster Download; im Browser rechnet nur die CPU). `large-v3-turbo` nutzt 128 Mel-Bänder
 statt 80 und wird im Browser nicht angeboten (dort zu langsam).
 
+## Speicherort und Entfernen
+
+Jedes Modell wird **einmal** geladen und bleibt danach gespeichert; die App startet dann ohne Netz.
+Talk Typer löscht Modelle nie selbst – weder beim Wechsel des Modells noch bei der Deinstallation.
+Wer Platz freigeben will (allein `large-v3-turbo-q` belegt rund 880 MB), muss die Dateien **manuell
+entfernen**.
+
+### Desktop
+
+Modelle liegen im App-Datenverzeichnis unter `models/<id>/` (`weights.gguf` bzw.
+`weights.safetensors`, `config.json`, `tokenizer.json`):
+
+| System  | Ordner                                                          |
+| ------- | --------------------------------------------------------------- |
+| macOS   | `~/Library/Application Support/io.github.krocon.talk-typer/models/` |
+| Windows | `%APPDATA%\io.github.krocon.talk-typer\models\`                 |
+| Linux   | `~/.local/share/io.github.krocon.talk-typer/models/`            |
+
+- Einzelnes Modell entfernen: den Unterordner löschen, z. B. `models/large-v3-turbo-q/`. Wählt man das
+  Modell später wieder, wird es neu geladen.
+- Alles entfernen (nach der Deinstallation): den ganzen Ordner `io.github.krocon.talk-typer` löschen.
+  Darin liegen auch die gespeicherten Einstellungen. Unter macOS bleibt er erhalten, wenn die App nur in
+  den Papierkorb gezogen wird.
+
+Die App sollte dabei nicht laufen. Downloads werden als `*.part` geschrieben und erst nach geprüfter
+Größe und SHA-256 umbenannt; ein abgebrochener Download hinterlässt keine halben Modelldateien. Bereits
+fertige Dateien eines Modells bleiben erhalten, die abgebrochene Datei wird beim nächsten Versuch von
+vorn geladen.
+
+### Browser
+
+Modelle liegen im Cache Storage der Seite (Cache `talk-typer-models-v1`). Entfernen über die
+Website-Daten des Browsers: für `krocon.github.io` „Websitedaten löschen“ (Chrome/Edge:
+Schloss-Symbol → Website-Einstellungen → Daten löschen; Firefox: Schloss-Symbol → Cookies und
+Website-Daten löschen; Safari: Einstellungen → Datenschutz → Websitedaten verwalten). Achtung: Das
+löscht die Daten **aller** Seiten unter `krocon.github.io`, nicht nur die von Talk Typer. Gezielt nur
+die Modelle entfernen: Entwicklertools → Application/Speicher → Cache Storage →
+`talk-typer-models-v1` löschen. Der Browser kann
+den Cache bei Speichermangel auch selbst leeren; im privaten Fenster wird gar nicht gecacht.
+
 ## Warum selbst quantisiert?
 
 Das Repository der offiziellen candle-Beispiele (`lmz/candle-whisper`) enthält quantisiert nur `tiny`.

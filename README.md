@@ -98,6 +98,10 @@ Audio wird nur im Arbeitsspeicher verarbeitet und nicht gespeichert. Text verlä
 du ihn selbst kopierst oder exportierst. Die App lädt ausschließlich Modelldateien von
 `huggingface.co` (feste Versionen, SHA-256-geprüft).
 
+Geladene Modelle bleiben dauerhaft gespeichert und werden von der App nie gelöscht, auch nicht bei
+der Deinstallation. Wer den Speicherplatz zurückhaben will, muss sie manuell entfernen. Speicherorte und
+Anleitung: [docs/models.md → Speicherort und Entfernen](docs/models.md#speicherort-und-entfernen).
+
 ## Lizenz
 
 MIT – siehe [LICENSE](LICENSE). Whisper-Modelle: MIT (OpenAI).
