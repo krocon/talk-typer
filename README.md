@@ -61,6 +61,11 @@ Danach einmal `pnpm install`.
 | Linux   | `pnpm tauri:dev`                         | `pnpm tauri:build:linux`                                                        |
 | Browser | `pnpm start:web` → http://localhost:1440 | `pnpm build:web` → `dist/talk-typer-web/browser` (statisch, z. B. GitHub Pages) |
 
+Promo-Seite (`site/`): `pnpm start:site` → http://localhost:1450, `pnpm build:site` → `dist/talk-typer-site`.
+Für krocon.de baut `pnpm build:deploy` Seite und Web-App nach `dist/deploy/talk-typer/` (Seite) und
+`dist/deploy/talk-typer/app/` (Web-App, Base-Href `/products/talk-typer/app/`); den Ordner
+`dist/deploy/talk-typer` nach `/products/` auf den Server kopieren.
+
 NVIDIA-GPU unter Windows/Linux (CUDA-Toolkit nötig): `pnpm tauri build -- --features cuda`.
 
 Prüfungen: `pnpm check` (Format, Lint, Frontend-Tests, beide Builds, `cargo fmt`, `clippy` nativ und

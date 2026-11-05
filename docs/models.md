@@ -53,10 +53,10 @@ vorn geladen.
 ### Browser
 
 Modelle liegen im Cache Storage der Seite (Cache `talk-typer-models-v1`). Entfernen über die
-Website-Daten des Browsers: für `krocon.github.io` „Websitedaten löschen“ (Chrome/Edge:
+Website-Daten des Browsers: für die Domain der Web-App (`krocon.de` bzw. `krocon.github.io`) „Websitedaten löschen“ (Chrome/Edge:
 Schloss-Symbol → Website-Einstellungen → Daten löschen; Firefox: Schloss-Symbol → Cookies und
 Website-Daten löschen; Safari: Einstellungen → Datenschutz → Websitedaten verwalten). Achtung: Das
-löscht die Daten **aller** Seiten unter `krocon.github.io`, nicht nur die von Talk Typer. Gezielt nur
+löscht die Daten **aller** Seiten dieser Domain, nicht nur die von Talk Typer. Gezielt nur
 die Modelle entfernen: Entwicklertools → Application/Speicher → Cache Storage →
 `talk-typer-models-v1` löschen. Der Browser kann
 den Cache bei Speichermangel auch selbst leeren; im privaten Fenster wird gar nicht gecacht.

@@ -18,6 +18,7 @@
     "build:desktop": "ng build --configuration desktop",
     "build:web": "pnpm worklets && pnpm wasm && ng build --configuration web",
     "build:site": "node scripts/build-site.mjs",
+    "build:deploy": "node scripts/build-deploy.mjs",
     "build": "pnpm build:desktop && pnpm build:web",
     "wasm": "wasm-pack build crates/stt-wasm --target web --release --no-pack --out-dir ../../frontend/public/wasm",
     "lint": "ng lint && tsc -p frontend/tsconfig.worklet.json",
