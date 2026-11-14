@@ -4897,7 +4897,7 @@ dependencies = [
 
 [[package]]
 name = "stt-core"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "candle-core",
  "candle-nn",
@@ -4914,7 +4914,7 @@ dependencies = [
 
 [[package]]
 name = "stt-wasm"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "serde_json",
  "stt-core",
@@ -5019,7 +5019,7 @@ dependencies = [
 
 [[package]]
 name = "talk-typer"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "cpal",
  "reqwest",

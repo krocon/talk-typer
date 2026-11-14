@@ -1,6 +1,6 @@
 {
   "name": "talk-typer",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Local speech-to-text with Whisper – Tauri 2 desktop app and browser (WASM)",
   "license": "MIT",
   "private": true,
