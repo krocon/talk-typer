@@ -31,6 +31,10 @@ sha2 = "0.10"
 tauri-plugin-dialog = "2.8"
 # Persisted settings (model, language, input device) – used from Rust only.
 tauri-plugin-store = "2.5"
+# Opens the release page in the default browser after the update check – used from Rust only.
+tauri-plugin-opener = "2"
+# Version comparison for the update check (same crate Tauri uses for `PackageInfo::version`).
+semver = "1"
 
 # GPU on macOS via Metal, BLAS via Accelerate.
 [target.'cfg(target_os = "macos")'.dependencies]

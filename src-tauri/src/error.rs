@@ -19,6 +19,8 @@ pub enum AppError {
     Download(String),
     #[error("checksum mismatch: {0}")]
     ChecksumMismatch(String),
+    #[error("update check failed: {0}")]
+    UpdateCheck(String),
     #[error("model not downloaded: {0}")]
     ModelMissing(String),
     #[error("file system: {0}")]
@@ -40,6 +42,7 @@ impl AppError {
             Self::NoInputDevice => "no_input_device",
             Self::Download(_) => "download_failed",
             Self::ChecksumMismatch(_) => "checksum_mismatch",
+            Self::UpdateCheck(_) => "update_check_failed",
             Self::ModelMissing(_) => "model_missing",
             Self::Io(_) => "io",
             Self::AlreadyListening => "already_listening",

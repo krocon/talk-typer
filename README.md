@@ -1,8 +1,10 @@
 # Talk Typer
 
 Lokale Spracherkennung mit [OpenAI Whisper](https://github.com/openai/whisper): Mikrofon an, sprechen,
-Text erscheint. **Vollständig lokal** – kein Audio und kein Text verlässt das Gerät. Der einzige
+Text erscheint. **Vollständig lokal** – kein Audio und kein Text verlässt das Gerät. Der einzige automatische
 Netzwerkzugriff ist der einmalige Download des Modells (von HuggingFace, per SHA-256 geprüft).
+In der Desktop-App kann man zusätzlich in den Einstellungen auf Knopfdruck bei GitHub nach einer
+neueren Version fragen – automatisch passiert das nie.
 
 Eine Codebasis, vier Ziele:
 

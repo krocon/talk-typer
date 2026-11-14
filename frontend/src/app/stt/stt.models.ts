@@ -1,6 +1,7 @@
 /**
  * DTOs shared by both backends. Kept in sync by hand with Rust:
- * `stt-core/src/models.rs`, `stt-core/src/segment.rs`, `src-tauri/src/events.rs`, `devices.rs`.
+ * `stt-core/src/models.rs`, `stt-core/src/segment.rs`, `src-tauri/src/events.rs`, `devices.rs`,
+ * `update.rs`.
  */
 
 export type ModelId =
@@ -58,6 +59,18 @@ export interface InputDevice {
   isDefault: boolean;
 }
 
+/** Result of the update check (desktop, on request only). */
+export interface UpdateInfo {
+  /** Running version, e.g. `0.1.0`. */
+  current: string;
+  /** Newest published version, `null` when there is no release yet. */
+  latest: string | null;
+  /** Release page of `latest`. */
+  url: string | null;
+  /** `latest` is newer than `current`. */
+  available: boolean;
+}
+
 /** Error codes of `AppError` / `SttError` (Rust) plus browser-only ones. */
 export type SttErrorCode =
   | 'invalid_audio'
@@ -75,6 +88,7 @@ export type SttErrorCode =
   | 'download_failed'
   | 'checksum_mismatch'
   | 'model_missing'
+  | 'update_check_failed'
   | 'io'
   | 'already_listening'
   | 'internal'

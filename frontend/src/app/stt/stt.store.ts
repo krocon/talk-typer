@@ -9,8 +9,13 @@ import {
   SttError,
   SttStatus,
   TranscriptSegment,
+  UpdateInfo,
   toSttError,
 } from './stt.models';
+
+/** Update check in the settings (desktop, on request only). */
+export type UpdateState =
+  { kind: 'idle' } | { kind: 'checking' } | { kind: 'done'; info: UpdateInfo } | { kind: 'failed' };
 
 /** Level values kept for the waveform (25 per second → 16 s). */
 const HISTORY = 400;
@@ -43,6 +48,9 @@ export class SttStore {
   readonly busy = signal(false);
   /** Waiting for the microphone (the first start may wait for the system permission dialog). */
   readonly openingMic = signal(false);
+
+  readonly update = signal<UpdateState>({ kind: 'idle' });
+  readonly canCheckUpdate = this.backend.checkUpdate !== undefined;
 
   /** Settings are saved only after they were loaded (no overwrite with defaults). */
   private readonly settingsLoaded = signal(false);
@@ -166,6 +174,29 @@ export class SttStore {
       await this.backend.setInputDevice(id);
     } catch (e) {
       this.fail(e);
+    }
+  }
+
+  /** Asks for the newest release; a failure stays in `update` and does not touch `error`. */
+  async checkUpdate(): Promise<void> {
+    if (!this.backend.checkUpdate || this.update().kind === 'checking') return;
+    this.update.set({ kind: 'checking' });
+    try {
+      this.update.set({ kind: 'done', info: await this.backend.checkUpdate() });
+    } catch {
+      this.update.set({ kind: 'failed' });
+    }
+  }
+
+  /** Opens the release page of the version found by `checkUpdate`. */
+  async openRelease(): Promise<void> {
+    const u = this.update();
+    if (u.kind !== 'done' || !u.info.url || !this.backend.openReleasePage) return;
+    try {
+      await this.backend.openReleasePage(u.info.url);
+    } catch (e) {
+      // only the message – a recording that may be running is not affected
+      this.error.set(toSttError(e));
     }
   }
 
