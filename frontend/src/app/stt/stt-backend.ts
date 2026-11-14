@@ -8,6 +8,7 @@ import {
   SttError,
   SttStatus,
   TranscriptSegment,
+  UpdateInfo,
 } from './stt.models';
 
 /**
@@ -28,6 +29,10 @@ export interface TranscriptionBackend {
   saveText(fileName: string, contents: string): Promise<boolean>;
   loadSettings(): Promise<Settings>;
   saveSettings(settings: Settings): Promise<void>;
+  /** Desktop only: asks GitHub for the newest release (never automatically). */
+  checkUpdate?(): Promise<UpdateInfo>;
+  /** Desktop only: opens a release page from `UpdateInfo.url` in the default browser. */
+  openReleasePage?(url: string): Promise<void>;
   readonly segments$: Observable<TranscriptSegment>;
   readonly status$: Observable<SttStatus>;
   /** Input level (RMS, 0…1) for the level meter and the waveform. */

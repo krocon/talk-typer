@@ -72,6 +72,30 @@
               </select>
             </label>
           }
+          @if (store.canCheckUpdate) {
+            @let update = store.update();
+            <div class="menu-row">
+              <span>{{ t.updates }}</span>
+              <div class="menu-actions">
+                @if (update.kind === 'done' && update.info.available) {
+                  <button type="button" (click)="store.openRelease()">
+                    {{ t.updateOpen }} {{ update.info.latest }}
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    [disabled]="update.kind === 'checking'"
+                    (click)="store.checkUpdate()"
+                  >
+                    {{ update.kind === 'checking' ? t.updateChecking : t.updateCheck }}
+                  </button>
+                }
+              </div>
+              @if (updateNote()) {
+                <span class="menu-note" role="status">{{ updateNote() }}</span>
+              }
+            </div>
+          }
         </div>
       } @else {
         <app-waveform class="wave" [levels]="store.levels()" [active]="store.listening()" />

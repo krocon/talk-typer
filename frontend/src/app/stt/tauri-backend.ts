@@ -9,6 +9,7 @@ import {
   Settings,
   SttStatus,
   TranscriptSegment,
+  UpdateInfo,
   toSttError,
 } from './stt.models';
 
@@ -92,5 +93,13 @@ export class TauriBackend implements TranscriptionBackend {
 
   saveSettings(settings: Settings): Promise<void> {
     return call<void>('save_settings', { settings });
+  }
+
+  checkUpdate(): Promise<UpdateInfo> {
+    return call<UpdateInfo>('check_update');
+  }
+
+  openReleasePage(url: string): Promise<void> {
+    return call<void>('open_release_page', { url });
   }
 }

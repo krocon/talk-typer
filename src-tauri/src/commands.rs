@@ -5,6 +5,7 @@ use crate::devices::{self, InputDevice};
 use crate::error::{AppError, AppResult};
 use crate::events::{self, DownloadProgress, SttStatus};
 use crate::settings::{self, Settings};
+use crate::update::{self, UpdateInfo};
 use serde::Serialize;
 use stt_core::{MODELS, ModelId, ModelInfo};
 use tauri::{AppHandle, Emitter, Manager, State};
@@ -117,6 +118,22 @@ pub async fn load_settings(app: AppHandle) -> AppResult<Settings> {
 #[tauri::command]
 pub async fn save_settings(app: AppHandle, settings: Settings) -> AppResult<()> {
     blocking(move || settings::save(&app, settings)).await
+}
+
+/// Asks GitHub for the newest release (only on request – the app never checks by itself).
+#[tauri::command]
+pub async fn check_update(app: AppHandle) -> AppResult<UpdateInfo> {
+    update::check(&app.package_info().version).await
+}
+
+/// Opens a release page in the default browser; other URLs are rejected.
+#[tauri::command]
+pub async fn open_release_page(app: AppHandle, url: String) -> AppResult<()> {
+    use tauri_plugin_opener::OpenerExt;
+    if !update::is_release_url(&url) {
+        return Err(AppError::Internal(format!("not a release page: {url}")));
+    }
+    app.opener().open_url(url, None::<&str>).map_err(|e| AppError::Internal(e.to_string()))
 }
 
 #[cfg(test)]

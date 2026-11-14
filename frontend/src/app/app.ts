@@ -55,6 +55,13 @@ export class App implements OnInit {
     const text = this.store.text();
     return text ? text.split(/\s+/).filter(Boolean).length : 0;
   });
+  protected readonly updateNote = computed(() => {
+    const u = this.store.update();
+    if (u.kind === 'failed') return this.t.updateFailed;
+    if (u.kind !== 'done') return '';
+    const { available, latest, current } = u.info;
+    return available && latest ? this.t.updateAvailable(latest, current) : this.t.upToDate(current);
+  });
   protected readonly formatStamp = (ms: number): string => formatDuration(ms).slice(3);
 
   private readonly scrollers = viewChildren<ElementRef<HTMLElement>>('scroller');

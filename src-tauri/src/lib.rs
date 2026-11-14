@@ -2,7 +2,8 @@
 //!
 //! Whisper runs natively (stt-core, candle with Metal on macOS); audio is captured with cpal.
 //! The frontend talks to this crate only through the commands in [`commands`] and the events in
-//! [`events`]. The only network access is the model download from HuggingFace.
+//! [`events`]. Network access: the model download from HuggingFace and, only when the user asks,
+//! the update check against the GitHub releases ([`update`]).
 
 pub mod capture;
 pub mod commands;
@@ -13,6 +14,7 @@ pub mod events;
 pub mod export;
 pub mod model_store;
 pub mod settings;
+pub mod update;
 
 use engine::Engine;
 use model_store::ModelStore;
@@ -26,8 +28,9 @@ pub struct AppState {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let result = tauri::Builder::default()
-        // both plugins are used from Rust only; the webview gets no plugin permissions
+        // all plugins are used from Rust only; the webview gets no plugin permissions
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .setup(|app| {
             let models = ModelStore::new(app.path().app_data_dir()?.join("models"));
@@ -45,6 +48,8 @@ pub fn run() {
             commands::save_text,
             commands::load_settings,
             commands::save_settings,
+            commands::check_update,
+            commands::open_release_page,
         ])
         .run(tauri::generate_context!());
     if let Err(e) = result {

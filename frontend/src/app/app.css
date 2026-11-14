@@ -192,6 +192,13 @@
   cursor: default;
 }
 
+.menu-note {
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--screen-fg);
+}
+
 .progress {
   height: 3px;
   margin: 8px 0 4px;
